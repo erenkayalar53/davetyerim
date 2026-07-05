@@ -41,6 +41,7 @@ export interface Venue {
   status: VenueStatus;
   plan: VenuePlan;
   featured: boolean;
+  verified: boolean;
   created_at: string;
   photos: VenuePhoto[];
 }
@@ -71,6 +72,9 @@ export interface Profile {
   business_city: string | null;
   tax_id: string | null;
   application_note: string | null;
+  verified: boolean;
+  tax_document_path: string | null;
+  license_document_path: string | null;
 }
 
 export interface VenueFilters {

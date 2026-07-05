@@ -150,6 +150,12 @@ export default async function VenuePage({ params }: PageProps) {
                 Öne Çıkan
               </span>
             )}
+            {venue.verified && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-sage/15 px-3 py-1 text-xs font-medium text-sage">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                Doğrulanmış İşletme
+              </span>
+            )}
           </div>
           <h1 className="mt-4 font-display text-3xl font-semibold leading-tight text-ink sm:text-5xl">
             {venue.name}

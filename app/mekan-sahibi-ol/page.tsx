@@ -88,6 +88,61 @@ export default async function BecomeOwnerPage() {
             ))}
           </div>
 
+          <Reveal className="mt-12">
+            <div className="rounded-[1.75rem] border border-hairline bg-parchment p-8">
+              <h2 className="font-display text-xl font-semibold text-ink">
+                Yayınlamak için gerekli belgeler
+              </h2>
+              <p className="mt-2 text-sm text-ink-soft">
+                Ziyaretçilerin güvenini kazanmak ve “Doğrulanmış İşletme”
+                rozetini almak için aşağıdaki belgeleri başvuruda yükleyin.
+                Belgeleriniz gizli tutulur; yalnızca doğrulama ekibimiz görür.
+              </p>
+              <ul className="mt-5 flex flex-col gap-3">
+                {[
+                  {
+                    name: "Vergi Levhası",
+                    req: "Zorunlu",
+                    desc: "İşletmenizin kayıtlı ve vergi mükellefi olduğunu gösterir.",
+                  },
+                  {
+                    name: "İşyeri Açma ve Çalışma Ruhsatı",
+                    req: "Zorunlu",
+                    desc: "Mekanın etkinlik için yasal olarak işletilebildiğini kanıtlar (belediyeden).",
+                  },
+                  {
+                    name: "Faaliyet Belgesi / Ticaret Sicil",
+                    req: "Önerilir",
+                    desc: "İşletmenizin aktif ve tescilli olduğunu teyit eder.",
+                  },
+                  {
+                    name: "Alkollü İçecek Belgesi",
+                    req: "Alkol sunuyorsanız",
+                    desc: "Alkollü paket sunan mekanlar için gereklidir.",
+                  },
+                ].map((doc) => (
+                  <li
+                    key={doc.name}
+                    className="flex items-start gap-3 rounded-2xl border border-hairline bg-cream px-4 py-3.5"
+                  >
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blush text-xs text-bordeaux">
+                      ✓
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium text-ink">
+                        {doc.name}{" "}
+                        <span className="ml-1 rounded-full bg-cream-deep px-2 py-0.5 text-[10px] font-normal text-mute">
+                          {doc.req}
+                        </span>
+                      </p>
+                      <p className="mt-0.5 text-sm text-ink-soft">{doc.desc}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+
           {status === "rejected" && (
             <Reveal className="mt-8">
               <p className="rounded-2xl bg-bordeaux/10 px-5 py-4 text-sm text-bordeaux">

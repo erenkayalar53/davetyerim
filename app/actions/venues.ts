@@ -79,6 +79,14 @@ export async function saveVenue(input: VenueInput): Promise<SaveVenueResult> {
     return { ok: false, message: "Oturumunuz sonlanmış, tekrar giriş yapın." };
   }
 
+  // Sahip doğrulanmışsa mekan da doğrulanmış rozeti alır
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("verified")
+    .eq("id", user.id)
+    .maybeSingle();
+  const ownerVerified = Boolean(profile?.verified);
+
   const { min: priceMin, max: priceMax } = priceRange(input);
 
   const venueData = {
@@ -98,6 +106,7 @@ export async function saveVenue(input: VenueInput): Promise<SaveVenueResult> {
     categories: input.categories,
     features: input.features,
     menu_packages: input.menu_packages,
+    verified: ownerVerified,
   };
 
   let venueId = input.id;

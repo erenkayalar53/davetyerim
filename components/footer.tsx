@@ -80,6 +80,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/sss" className="text-sm text-ink-soft transition-colors duration-300 hover:text-bordeaux">
+                  Sıkça Sorulan Sorular
+                </Link>
+              </li>
+              <li>
                 <Link href="/gizlilik" className="text-sm text-ink-soft transition-colors duration-300 hover:text-bordeaux">
                   Gizlilik & KVKK
                 </Link>

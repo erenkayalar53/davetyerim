@@ -44,6 +44,25 @@ export default async function AdminPage() {
 
   const applications = (applicationData as Profile[]) ?? [];
 
+  // Belgeler için kısa ömürlü imzalı bağlantılar üret (özel bucket)
+  const docLinks: Record<string, { tax?: string; license?: string }> = {};
+  for (const app of applications) {
+    const links: { tax?: string; license?: string } = {};
+    if (app.tax_document_path) {
+      const { data } = await supabase.storage
+        .from("owner-documents")
+        .createSignedUrl(app.tax_document_path, 3600);
+      if (data?.signedUrl) links.tax = data.signedUrl;
+    }
+    if (app.license_document_path) {
+      const { data } = await supabase.storage
+        .from("owner-documents")
+        .createSignedUrl(app.license_document_path, 3600);
+      if (data?.signedUrl) links.license = data.signedUrl;
+    }
+    docLinks[app.id] = links;
+  }
+
   const venues = ((venueData as VenueRow[]) ?? []).map((v) => ({
     ...v,
     photos: v.photos ?? [],
@@ -113,6 +132,36 @@ export default async function AdminPage() {
                       “{app.application_note}”
                     </p>
                   )}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {docLinks[app.id]?.tax ? (
+                      <a
+                        href={docLinks[app.id].tax}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-full border border-sage/40 bg-sage/10 px-3 py-1 text-xs font-medium text-sage"
+                      >
+                        📄 Vergi Levhası
+                      </a>
+                    ) : (
+                      <span className="rounded-full border border-hairline px-3 py-1 text-xs text-mute">
+                        Vergi levhası yok
+                      </span>
+                    )}
+                    {docLinks[app.id]?.license ? (
+                      <a
+                        href={docLinks[app.id].license}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-full border border-sage/40 bg-sage/10 px-3 py-1 text-xs font-medium text-sage"
+                      >
+                        📄 İşyeri Ruhsatı
+                      </a>
+                    ) : (
+                      <span className="rounded-full border border-hairline px-3 py-1 text-xs text-mute">
+                        Ruhsat yok
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex shrink-0 gap-2">
                   <form action={approveOwner}>

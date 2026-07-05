@@ -33,6 +33,9 @@ export async function getSessionProfile(): Promise<{
       business_city: null,
       tax_id: null,
       application_note: null,
+      verified: false,
+      tax_document_path: null,
+      license_document_path: null,
     },
   };
 }

@@ -23,6 +23,7 @@ function normalize(row: VenueRow): Venue {
     venue_type: row.venue_type ?? venue_types[0],
     menu_packages: row.menu_packages ?? [],
     view_count: row.view_count ?? 0,
+    verified: row.verified ?? false,
     photos: (row.photos ?? []).sort((a, b) => a.sort_order - b.sort_order),
   };
 }

@@ -57,6 +57,7 @@ export const MOCK_VENUES: Venue[] = (seedData as SeedVenue[]).map(
       },
     ],
     view_count: 0,
+    verified: v.plan === "premium",
     status: "approved",
     plan: v.plan as VenuePlan,
     featured: v.featured,

@@ -44,9 +44,20 @@ export function VenueCard({
         </div>
 
         <div className="px-4 pb-4 pt-4">
-          <h3 className="font-display text-lg font-semibold leading-snug text-ink">
-            {venue.name}
-          </h3>
+          <div className="flex items-start gap-1.5">
+            <h3 className="font-display text-lg font-semibold leading-snug text-ink">
+              {venue.name}
+            </h3>
+            {venue.verified && (
+              <span
+                title="Belgeleri doğrulanmış işletme"
+                className="mt-1 inline-flex shrink-0 items-center gap-1 rounded-full bg-sage/15 px-2 py-0.5 text-[10px] font-medium text-sage"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                Doğrulanmış
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-sm text-mute">
             {venue.district ? `${venue.district}, ` : ""}
             {venue.city}
