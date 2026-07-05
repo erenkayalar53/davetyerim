@@ -7,12 +7,19 @@ import { PhoneReveal } from "@/components/phone-reveal";
 import { VenueCard } from "@/components/venue-card";
 import { Reveal } from "@/components/reveal";
 import { FavoriteButton } from "@/components/favorite-button";
+import { RichText } from "@/components/rich-text";
+import { Stars } from "@/components/stars";
+import { Accordion } from "@/components/accordion";
+import { ReviewsSection } from "@/components/reviews-section";
+import { VenueTabs, type VenueTab } from "@/components/venue-tabs";
 import {
   getVenueBySlug,
   getSimilarVenues,
   getFavoriteVenueIds,
+  getVenueReviews,
   recordVenueView,
 } from "@/lib/data";
+import { getSessionProfile } from "@/lib/auth";
 import {
   categoryLabel,
   featureLabel,
@@ -47,13 +54,21 @@ export default async function VenuePage({ params }: PageProps) {
   if (!venue) notFound();
 
   await recordVenueView(venue.id);
-  const [similar, favoriteIds] = await Promise.all([
+  const [similar, favoriteIds, reviews, session] = await Promise.all([
     getSimilarVenues(venue),
     getFavoriteVenueIds(),
+    getVenueReviews(venue.id),
+    getSessionProfile(),
   ]);
+
   const venueTypes = venue.venue_types?.length
     ? venue.venue_types
     : [venue.venue_type];
+  const canManage = Boolean(
+    session &&
+      (session.profile.role === "admin" ||
+        session.user.id === venue.owner_id)
+  );
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -71,6 +86,15 @@ export default async function VenuePage({ params }: PageProps) {
     },
     maximumAttendeeCapacity: venue.capacity_max,
     priceRange: `₺${formatPrice(venue.price_min)} - ₺${formatPrice(venue.price_max)} (kişi başı)`,
+    ...(venue.rating_count > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: venue.rating_avg.toFixed(1),
+            reviewCount: venue.rating_count,
+          },
+        }
+      : {}),
     ...(venue.plan === "premium" && venue.phone
       ? { telephone: venue.phone }
       : {}),
@@ -102,9 +126,40 @@ export default async function VenuePage({ params }: PageProps) {
     ],
   };
 
+  const faqJsonLd =
+    venue.faqs.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: venue.faqs.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }
+      : null;
+
   const mapQuery = encodeURIComponent(
     `${venue.name} ${venue.district} ${venue.city}`
   );
+
+  const hasWeekendPricing = venue.menu_packages.some(
+    (p) => (p.price_weekday ?? 0) !== (p.price_weekend ?? 0)
+  );
+
+  // Yapışkan sekmeler — yalnızca var olan bölümler
+  const tabs: VenueTab[] = [
+    { id: "hakkinda", label: "Hakkında" },
+    ...(venue.menu_packages.length > 0
+      ? [{ id: "fiyatlar", label: "Fiyatlar" }]
+      : []),
+    ...(venue.campaign ? [{ id: "kampanya", label: "Kampanya" }] : []),
+    { id: "kapasite", label: "Kapasite" },
+    { id: "ozellikler", label: "Özellikler" },
+    ...(venue.faqs.length > 0 ? [{ id: "sss", label: "S.S.S." }] : []),
+    { id: "yorumlar", label: "Yorumlar" },
+    { id: "konum", label: "Konum" },
+  ];
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-24 pt-32 sm:pt-36">
@@ -116,6 +171,12 @@ export default async function VenuePage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
 
       {/* Breadcrumb */}
       <nav aria-label="Sayfa yolu" className="text-xs text-mute">
@@ -160,10 +221,23 @@ export default async function VenuePage({ params }: PageProps) {
           <h1 className="mt-4 font-display text-3xl font-semibold leading-tight text-ink sm:text-5xl">
             {venue.name}
           </h1>
-          <p className="mt-2 text-sm text-ink-soft">
-            {venue.district ? `${venue.district}, ` : ""}
-            {venue.city}
-          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-ink-soft">
+            <span>
+              {venue.district ? `${venue.district}, ` : ""}
+              {venue.city}
+            </span>
+            {venue.rating_count > 0 && (
+              <span className="flex items-center gap-1.5">
+                <Stars value={venue.rating_avg} size={14} />
+                <span className="font-medium text-ink">
+                  {venue.rating_avg.toFixed(1)}
+                </span>
+                <span className="text-mute">
+                  ({venue.rating_count} yorum)
+                </span>
+              </span>
+            )}
+          </div>
         </div>
         <div className="rounded-2xl border border-hairline bg-parchment px-6 py-4 text-right shadow-float">
           <p className="text-[10px] uppercase tracking-[0.18em] text-mute">
@@ -178,10 +252,14 @@ export default async function VenuePage({ params }: PageProps) {
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_380px]">
         {/* Sol kolon */}
         <div className="min-w-0">
-          <Gallery photos={venue.photos} venueName={venue.name} />
+          <div id="fotograflar">
+            <Gallery photos={venue.photos} venueName={venue.name} />
+          </div>
+
+          <VenueTabs tabs={tabs} />
 
           {/* Özet bilgiler */}
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               {
                 label: "Kapasite",
@@ -189,10 +267,7 @@ export default async function VenuePage({ params }: PageProps) {
               },
               { label: "Şehir", value: venue.city },
               { label: "Tip", value: venueTypeLabel(venueTypes[0]) },
-              {
-                label: "Görüntülenme",
-                value: `${venue.view_count}`,
-              },
+              { label: "Görüntülenme", value: `${venue.view_count}` },
             ].map((item) => (
               <div
                 key={item.label}
@@ -209,43 +284,51 @@ export default async function VenuePage({ params }: PageProps) {
           </div>
 
           {/* Açıklama */}
-          <Reveal className="mt-10">
+          <Reveal className="mt-12 scroll-mt-32" id="hakkinda">
             <h2 className="font-display text-2xl font-semibold text-ink">
               Mekan Hakkında
             </h2>
-            <p className="mt-4 leading-relaxed text-ink-soft">
-              {venue.description}
-            </p>
+            <div className="mt-3">
+              <RichText content={venue.description} />
+            </div>
           </Reveal>
 
-          {/* Fiyat paketleri */}
+          {/* Fiyatlar */}
           {venue.menu_packages.length > 0 && (
-            <Reveal className="mt-10">
+            <Reveal className="mt-12 scroll-mt-32" id="fiyatlar">
               <h2 className="font-display text-2xl font-semibold text-ink">
-                Fiyat Paketleri
+                Fiyatlar
               </h2>
               <p className="mt-2 text-sm text-mute">
                 Kişi başı fiyatlar. Kesin teklif için tarih ve davetli sayınızla
                 ücretsiz teklif isteyin.
               </p>
-              <div className="mt-4 overflow-hidden rounded-[1.5rem] border border-hairline">
-                <table className="w-full text-left text-sm">
+              <div className="mt-4 overflow-x-auto rounded-[1.5rem] border border-hairline">
+                <table className="w-full min-w-[420px] text-left text-sm">
                   <thead className="bg-cream-deep/60 text-[10px] uppercase tracking-[0.15em] text-mute">
                     <tr>
                       <th className="px-5 py-3.5 font-medium">Paket</th>
                       <th className="px-4 py-3.5 text-center font-medium">Yemek</th>
                       <th className="px-4 py-3.5 text-center font-medium">Alkol</th>
-                      <th className="px-5 py-3.5 text-right font-medium">
-                        Kişi Başı
-                      </th>
+                      {hasWeekendPricing ? (
+                        <>
+                          <th className="px-4 py-3.5 text-right font-medium">
+                            Hafta İçi
+                          </th>
+                          <th className="px-5 py-3.5 text-right font-medium">
+                            Hafta Sonu
+                          </th>
+                        </>
+                      ) : (
+                        <th className="px-5 py-3.5 text-right font-medium">
+                          Kişi Başı
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="bg-parchment">
                     {venue.menu_packages.map((pkg, i) => (
-                      <tr
-                        key={i}
-                        className="border-t border-hairline first:border-0"
-                      >
+                      <tr key={i} className="border-t border-hairline first:border-0">
                         <td className="px-5 py-4 font-medium text-ink">
                           {pkg.name}
                         </td>
@@ -263,9 +346,20 @@ export default async function VenuePage({ params }: PageProps) {
                             <span className="text-mute/50">—</span>
                           )}
                         </td>
-                        <td className="px-5 py-4 text-right font-display text-base font-semibold text-bordeaux">
-                          {formatPrice(pkg.price)} ₺
-                        </td>
+                        {hasWeekendPricing ? (
+                          <>
+                            <td className="px-4 py-4 text-right font-medium text-ink">
+                              {formatPrice(pkg.price_weekday ?? pkg.price)} ₺
+                            </td>
+                            <td className="px-5 py-4 text-right font-display text-base font-semibold text-bordeaux">
+                              {formatPrice(pkg.price_weekend ?? pkg.price)} ₺
+                            </td>
+                          </>
+                        ) : (
+                          <td className="px-5 py-4 text-right font-display text-base font-semibold text-bordeaux">
+                            {formatPrice(pkg.price)} ₺
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -274,8 +368,88 @@ export default async function VenuePage({ params }: PageProps) {
             </Reveal>
           )}
 
-          {/* Etkinlik türleri */}
-          <Reveal className="mt-10">
+          {/* Kampanya */}
+          {venue.campaign && (
+            <Reveal className="mt-12 scroll-mt-32" id="kampanya">
+              <div className="overflow-hidden rounded-[1.5rem] border border-bordeaux/30 bg-bordeaux p-1.5">
+                <div className="rounded-[calc(1.5rem-0.375rem)] bg-bordeaux px-6 py-6 text-cream">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em]">
+                      Kampanya
+                    </span>
+                    {venue.campaign.discount_pct ? (
+                      <span className="font-display text-2xl font-semibold text-blush">
+                        %{venue.campaign.discount_pct} indirim
+                      </span>
+                    ) : null}
+                  </div>
+                  <h3 className="mt-3 font-display text-xl font-semibold">
+                    {venue.campaign.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-white/85">
+                    {venue.campaign.text}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-4 text-xs text-white/70">
+                    {venue.campaign.min_guests ? (
+                      <span>Min. {venue.campaign.min_guests} kişi</span>
+                    ) : null}
+                    {venue.campaign.valid_until ? (
+                      <span>
+                        Son gün:{" "}
+                        {new Date(
+                          venue.campaign.valid_until
+                        ).toLocaleDateString("tr-TR")}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          )}
+
+          {/* Kapasite */}
+          <Reveal className="mt-12 scroll-mt-32" id="kapasite">
+            <h2 className="font-display text-2xl font-semibold text-ink">
+              Kapasite
+            </h2>
+            {venue.capacity_areas.length > 0 ? (
+              <div className="mt-4 overflow-x-auto rounded-[1.5rem] border border-hairline">
+                <table className="w-full min-w-[360px] text-left text-sm">
+                  <thead className="bg-cream-deep/60 text-[10px] uppercase tracking-[0.15em] text-mute">
+                    <tr>
+                      <th className="px-5 py-3.5 font-medium">Alan</th>
+                      <th className="px-5 py-3.5 text-right font-medium">
+                        Kapasite (kişi)
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-parchment">
+                    {venue.capacity_areas.map((area, i) => (
+                      <tr key={i} className="border-t border-hairline first:border-0">
+                        <td className="px-5 py-4 font-medium text-ink">
+                          {area.name}
+                        </td>
+                        <td className="px-5 py-4 text-right text-ink-soft">
+                          {area.min} – {area.max}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="mt-3 text-ink-soft">
+                Bu mekan{" "}
+                <strong className="text-ink">
+                  {venue.capacity_min} – {venue.capacity_max} kişi
+                </strong>{" "}
+                arası davetlere ev sahipliği yapabilir.
+              </p>
+            )}
+          </Reveal>
+
+          {/* Etkinlik türleri + Özellikler */}
+          <Reveal className="mt-12 scroll-mt-32" id="ozellikler">
             <h2 className="font-display text-2xl font-semibold text-ink">
               Uygun Etkinlikler
             </h2>
@@ -290,13 +464,10 @@ export default async function VenuePage({ params }: PageProps) {
                 </Link>
               ))}
             </div>
-          </Reveal>
 
-          {/* Özellikler */}
-          <Reveal className="mt-10">
-            <h2 className="font-display text-2xl font-semibold text-ink">
+            <h3 className="mt-8 font-display text-xl font-semibold text-ink">
               Mekan Özellikleri
-            </h2>
+            </h3>
             <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
               {venue.features.map((feature) => (
                 <div
@@ -312,8 +483,34 @@ export default async function VenuePage({ params }: PageProps) {
             </div>
           </Reveal>
 
+          {/* Mekana özel SSS */}
+          {venue.faqs.length > 0 && (
+            <Reveal className="mt-12 scroll-mt-32" id="sss">
+              <h2 className="font-display text-2xl font-semibold text-ink">
+                Sıkça Sorulan Sorular
+              </h2>
+              <div className="mt-4">
+                <Accordion items={venue.faqs} />
+              </div>
+            </Reveal>
+          )}
+
+          {/* Yorumlar */}
+          <Reveal className="mt-12 scroll-mt-32" id="yorumlar">
+            <h2 className="font-display text-2xl font-semibold text-ink">
+              Yorumlar & Puanlar
+            </h2>
+            <div className="mt-5">
+              <ReviewsSection
+                venue={venue}
+                reviews={reviews}
+                canManage={canManage}
+              />
+            </div>
+          </Reveal>
+
           {/* Konum */}
-          <Reveal className="mt-10">
+          <Reveal className="mt-12 scroll-mt-32" id="konum">
             <h2 className="font-display text-2xl font-semibold text-ink">
               Konum
             </h2>

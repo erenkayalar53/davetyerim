@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { Venue } from "@/lib/types";
 import { venueTypeLabel, formatPrice } from "@/lib/constants";
 import { FavoriteButton } from "@/components/favorite-button";
+import { Stars } from "@/components/stars";
 
 export function VenueCard({
   venue,
@@ -58,10 +59,19 @@ export function VenueCard({
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm text-mute">
-            {venue.district ? `${venue.district}, ` : ""}
-            {venue.city}
-          </p>
+          <div className="mt-1 flex items-center gap-2">
+            <p className="text-sm text-mute">
+              {venue.district ? `${venue.district}, ` : ""}
+              {venue.city}
+            </p>
+            {venue.rating_count > 0 && (
+              <span className="flex items-center gap-1 text-xs text-ink-soft">
+                <Stars value={venue.rating_avg} size={11} />
+                <span className="font-medium">{venue.rating_avg.toFixed(1)}</span>
+                <span className="text-mute">({venue.rating_count})</span>
+              </span>
+            )}
+          </div>
 
           <div className="mt-4 flex items-end justify-between border-t border-hairline pt-3.5">
             <div className="text-xs text-ink-soft">

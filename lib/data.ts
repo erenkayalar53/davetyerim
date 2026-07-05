@@ -5,12 +5,36 @@ import type { Venue, VenueFilters, VenuePhoto } from "./types";
 
 export const PAGE_SIZE = 12;
 
-type VenueRow = Omit<Venue, "photos" | "venue_types" | "menu_packages"> & {
+type VenueRow = Omit<
+  Venue,
+  | "photos"
+  | "venue_types"
+  | "menu_packages"
+  | "faqs"
+  | "capacity_areas"
+  | "campaign"
+> & {
   photos: VenuePhoto[] | null;
   venue_types: string[] | null;
   menu_packages: Venue["menu_packages"] | null;
+  faqs?: Venue["faqs"] | null;
+  capacity_areas?: Venue["capacity_areas"] | null;
+  campaign?: Venue["campaign"] | null;
   view_count?: number | null;
+  rating_avg?: number | null;
+  rating_count?: number | null;
 };
+
+function normalizeMenuPackage(p: Venue["menu_packages"][number]) {
+  const weekday = p.price_weekday ?? p.price ?? 0;
+  const weekend = p.price_weekend ?? p.price ?? weekday;
+  return {
+    ...p,
+    price_weekday: weekday,
+    price_weekend: weekend,
+    price: p.price ?? weekday,
+  };
+}
 
 function normalize(row: VenueRow): Venue {
   const venue_types =
@@ -21,7 +45,12 @@ function normalize(row: VenueRow): Venue {
     ...row,
     venue_types,
     venue_type: row.venue_type ?? venue_types[0],
-    menu_packages: row.menu_packages ?? [],
+    menu_packages: (row.menu_packages ?? []).map(normalizeMenuPackage),
+    faqs: row.faqs ?? [],
+    capacity_areas: row.capacity_areas ?? [],
+    campaign: row.campaign ?? null,
+    rating_avg: Number(row.rating_avg ?? 0),
+    rating_count: row.rating_count ?? 0,
     view_count: row.view_count ?? 0,
     verified: row.verified ?? false,
     photos: (row.photos ?? []).sort((a, b) => a.sort_order - b.sort_order),
@@ -239,6 +268,22 @@ export async function getVenueByIdForPreview(id: string): Promise<Venue | null> 
     .maybeSingle();
   if (error || !data) return null;
   return normalize(data as VenueRow);
+}
+
+// Bir mekanın onaylı yorumları
+export async function getVenueReviews(
+  venueId: string
+): Promise<import("./types").Review[]> {
+  if (!isSupabaseConfigured()) return [];
+  if (venueId.startsWith("mock-")) return [];
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("reviews")
+    .select("*")
+    .eq("venue_id", venueId)
+    .eq("status", "approved")
+    .order("created_at", { ascending: false });
+  return (data as import("./types").Review[]) ?? [];
 }
 
 // Görüntülenme sayacını artır (RPC — anon dahil güvenli)

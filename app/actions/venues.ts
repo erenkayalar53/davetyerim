@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { slugifyTr } from "@/lib/constants";
-import type { MenuPackage } from "@/lib/types";
+import type {
+  MenuPackage,
+  FaqItem,
+  CapacityArea,
+  Campaign,
+} from "@/lib/types";
 
 export interface VenueInput {
   id?: string;
@@ -22,6 +27,9 @@ export interface VenueInput {
   categories: string[];
   features: string[];
   menu_packages: MenuPackage[];
+  capacity_areas: CapacityArea[];
+  faqs: FaqItem[];
+  campaign: Campaign | null;
   photo_urls: string[];
 }
 
@@ -48,15 +56,27 @@ function validate(input: VenueInput): string | null {
   return null;
 }
 
-// Menü paketleri varsa fiyat aralığını onlardan türet
+// Menü paketleri varsa fiyat aralığını onlardan türet (hafta içi + hafta sonu)
 function priceRange(input: VenueInput): { min: number; max: number } {
   const prices = input.menu_packages
-    .map((p) => p.price)
-    .filter((p) => p > 0);
+    .flatMap((p) => [p.price_weekday, p.price_weekend, p.price])
+    .filter((p): p is number => typeof p === "number" && p > 0);
   if (prices.length > 0) {
     return { min: Math.min(...prices), max: Math.max(...prices) };
   }
   return { min: input.price_min, max: input.price_max };
+}
+
+// Alt alanlar varsa toplam kapasiteyi onlardan türet
+function capacityRange(input: VenueInput): { min: number; max: number } {
+  if (input.capacity_areas.length > 0) {
+    const mins = input.capacity_areas.map((a) => a.min).filter((n) => n > 0);
+    const maxs = input.capacity_areas.map((a) => a.max).filter((n) => n > 0);
+    if (mins.length && maxs.length) {
+      return { min: Math.min(...mins), max: Math.max(...maxs) };
+    }
+  }
+  return { min: input.capacity_min, max: input.capacity_max };
 }
 
 export async function saveVenue(input: VenueInput): Promise<SaveVenueResult> {
@@ -88,6 +108,7 @@ export async function saveVenue(input: VenueInput): Promise<SaveVenueResult> {
   const ownerVerified = Boolean(profile?.verified);
 
   const { min: priceMin, max: priceMax } = priceRange(input);
+  const { min: capMin, max: capMax } = capacityRange(input);
 
   const venueData = {
     name: input.name.trim(),
@@ -97,8 +118,8 @@ export async function saveVenue(input: VenueInput): Promise<SaveVenueResult> {
     address: input.address.trim(),
     phone: input.phone.trim(),
     whatsapp: input.whatsapp.trim(),
-    capacity_min: input.capacity_min,
-    capacity_max: input.capacity_max,
+    capacity_min: capMin,
+    capacity_max: capMax,
     price_min: priceMin,
     price_max: priceMax,
     venue_type: input.venue_types[0],
@@ -106,6 +127,9 @@ export async function saveVenue(input: VenueInput): Promise<SaveVenueResult> {
     categories: input.categories,
     features: input.features,
     menu_packages: input.menu_packages,
+    capacity_areas: input.capacity_areas,
+    faqs: input.faqs,
+    campaign: input.campaign,
     verified: ownerVerified,
   };
 

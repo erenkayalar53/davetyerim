@@ -12,9 +12,46 @@ export interface VenuePhoto {
 
 export interface MenuPackage {
   name: string;
-  price: number;
+  price: number; // geriye dönük uyumluluk (hafta içi baz)
+  price_weekday?: number;
+  price_weekend?: number;
   includes_food: boolean;
   includes_alcohol: boolean;
+}
+
+export interface FaqItem {
+  q: string;
+  a: string;
+}
+
+export interface CapacityArea {
+  name: string;
+  min: number;
+  max: number;
+}
+
+export interface Campaign {
+  title: string;
+  text: string;
+  discount_pct?: number;
+  valid_until?: string;
+  min_guests?: number;
+}
+
+export interface Review {
+  id: string;
+  venue_id: string;
+  user_id: string | null;
+  author_name: string;
+  event_date: string | null;
+  rating: number;
+  rating_quality: number | null;
+  rating_staff: number | null;
+  rating_communication: number | null;
+  comment: string;
+  owner_reply: string | null;
+  status: "pending" | "approved" | "hidden";
+  created_at: string;
 }
 
 export interface Venue {
@@ -37,6 +74,11 @@ export interface Venue {
   categories: string[];
   features: string[];
   menu_packages: MenuPackage[];
+  faqs: FaqItem[];
+  capacity_areas: CapacityArea[];
+  campaign: Campaign | null;
+  rating_avg: number;
+  rating_count: number;
   view_count: number;
   status: VenueStatus;
   plan: VenuePlan;

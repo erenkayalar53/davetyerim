@@ -12,14 +12,15 @@ import {
   CITIES,
   MENU_PACKAGE_PRESETS,
 } from "@/lib/constants";
-import type { MenuPackage, Venue } from "@/lib/types";
+import type { CapacityArea, FaqItem, Venue } from "@/lib/types";
 
 const STEPS = [
   "Bilgiler",
   "Konum",
   "Kapasite",
-  "Fiyat Paketleri",
+  "Fiyatlar",
   "Özellikler",
+  "Kampanya & SSS",
   "Fotoğraflar",
 ];
 
@@ -27,6 +28,20 @@ const isSupabaseConfigured = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
+
+interface PackageDraft {
+  name: string;
+  price_weekday: string;
+  price_weekend: string;
+  includes_food: boolean;
+  includes_alcohol: boolean;
+}
+
+interface AreaDraft {
+  name: string;
+  min: string;
+  max: string;
+}
 
 interface WizardState {
   name: string;
@@ -40,8 +55,15 @@ interface WizardState {
   whatsapp: string;
   capacity_min: string;
   capacity_max: string;
+  capacity_areas: AreaDraft[];
   features: string[];
-  menu_packages: MenuPackage[];
+  menu_packages: PackageDraft[];
+  faqs: FaqItem[];
+  campaign_title: string;
+  campaign_text: string;
+  campaign_discount: string;
+  campaign_min_guests: string;
+  campaign_valid_until: string;
 }
 
 function fromVenue(venue?: Venue): WizardState {
@@ -61,8 +83,31 @@ function fromVenue(venue?: Venue): WizardState {
     whatsapp: venue?.whatsapp ?? "",
     capacity_min: venue ? String(venue.capacity_min) : "",
     capacity_max: venue ? String(venue.capacity_max) : "",
+    capacity_areas:
+      venue?.capacity_areas?.map((a) => ({
+        name: a.name,
+        min: String(a.min),
+        max: String(a.max),
+      })) ?? [],
     features: venue?.features ?? [],
-    menu_packages: venue?.menu_packages?.length ? venue.menu_packages : [],
+    menu_packages:
+      venue?.menu_packages?.map((p) => ({
+        name: p.name,
+        price_weekday: String(p.price_weekday ?? p.price ?? ""),
+        price_weekend: String(p.price_weekend ?? p.price ?? ""),
+        includes_food: p.includes_food,
+        includes_alcohol: p.includes_alcohol,
+      })) ?? [],
+    faqs: venue?.faqs ?? [],
+    campaign_title: venue?.campaign?.title ?? "",
+    campaign_text: venue?.campaign?.text ?? "",
+    campaign_discount: venue?.campaign?.discount_pct
+      ? String(venue.campaign.discount_pct)
+      : "",
+    campaign_min_guests: venue?.campaign?.min_guests
+      ? String(venue.campaign.min_guests)
+      : "",
+    campaign_valid_until: venue?.campaign?.valid_until ?? "",
   };
 }
 
@@ -90,6 +135,7 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
     }));
   }
 
+  // --- Paketler ---
   function addPackage(preset?: (typeof MENU_PACKAGE_PRESETS)[number]) {
     setForm((prev) => ({
       ...prev,
@@ -97,27 +143,65 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
         ...prev.menu_packages,
         {
           name: preset?.name ?? "",
-          price: 0,
+          price_weekday: "",
+          price_weekend: "",
           includes_food: preset?.includes_food ?? true,
           includes_alcohol: preset?.includes_alcohol ?? false,
         },
       ],
     }));
   }
-
-  function updatePackage(index: number, patch: Partial<MenuPackage>) {
+  function updatePackage(i: number, patch: Partial<PackageDraft>) {
     setForm((prev) => ({
       ...prev,
-      menu_packages: prev.menu_packages.map((p, i) =>
-        i === index ? { ...p, ...patch } : p
+      menu_packages: prev.menu_packages.map((p, j) =>
+        j === i ? { ...p, ...patch } : p
       ),
     }));
   }
-
-  function removePackage(index: number) {
+  function removePackage(i: number) {
     setForm((prev) => ({
       ...prev,
-      menu_packages: prev.menu_packages.filter((_, i) => i !== index),
+      menu_packages: prev.menu_packages.filter((_, j) => j !== i),
+    }));
+  }
+
+  // --- Alt alanlar ---
+  function addArea() {
+    setForm((prev) => ({
+      ...prev,
+      capacity_areas: [...prev.capacity_areas, { name: "", min: "", max: "" }],
+    }));
+  }
+  function updateArea(i: number, patch: Partial<AreaDraft>) {
+    setForm((prev) => ({
+      ...prev,
+      capacity_areas: prev.capacity_areas.map((a, j) =>
+        j === i ? { ...a, ...patch } : a
+      ),
+    }));
+  }
+  function removeArea(i: number) {
+    setForm((prev) => ({
+      ...prev,
+      capacity_areas: prev.capacity_areas.filter((_, j) => j !== i),
+    }));
+  }
+
+  // --- SSS ---
+  function addFaq() {
+    setForm((prev) => ({ ...prev, faqs: [...prev.faqs, { q: "", a: "" }] }));
+  }
+  function updateFaq(i: number, patch: Partial<FaqItem>) {
+    setForm((prev) => ({
+      ...prev,
+      faqs: prev.faqs.map((f, j) => (j === i ? { ...f, ...patch } : f)),
+    }));
+  }
+  function removeFaq(i: number) {
+    setForm((prev) => ({
+      ...prev,
+      faqs: prev.faqs.filter((_, j) => j !== i),
     }));
   }
 
@@ -136,10 +220,19 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
         if (!form.district.trim()) return "İlçe girin.";
         return "";
       case 2: {
-        const capMin = Number(form.capacity_min);
-        const capMax = Number(form.capacity_max);
-        if (!capMin || !capMax || capMax < capMin)
-          return "Geçerli bir kapasite aralığı girin.";
+        const hasAreas = form.capacity_areas.length > 0;
+        if (hasAreas) {
+          for (const a of form.capacity_areas) {
+            if (!a.name.trim()) return "Her alanın bir adı olmalı.";
+            if (!Number(a.min) || !Number(a.max) || Number(a.max) < Number(a.min))
+              return "Alan kapasitelerini doğru girin.";
+          }
+        } else {
+          const capMin = Number(form.capacity_min);
+          const capMax = Number(form.capacity_max);
+          if (!capMin || !capMax || capMax < capMin)
+            return "Geçerli bir kapasite aralığı girin (veya alt alan ekleyin).";
+        }
         if (form.phone.replace(/\D/g, "").length < 10)
           return "Geçerli bir telefon numarası girin.";
         return "";
@@ -149,8 +242,8 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
           return "En az bir fiyat paketi ekleyin (örn: Yemekli Menü).";
         for (const p of form.menu_packages) {
           if (!p.name.trim()) return "Her paketin bir adı olmalı.";
-          if (!p.price || p.price <= 0)
-            return "Her paket için geçerli bir kişi başı fiyat girin.";
+          if (!Number(p.price_weekday) && !Number(p.price_weekend))
+            return "Her paket için en az bir kişi başı fiyat girin.";
         }
         return "";
       }
@@ -176,7 +269,6 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) throw new Error("Oturum bulunamadı");
-
     const urls: string[] = [];
     for (const [i, file] of files.entries()) {
       const ext = file.name.split(".").pop() ?? "jpg";
@@ -196,7 +288,38 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
     startTransition(async () => {
       try {
         const photoUrls = await uploadPhotos();
-        const prices = form.menu_packages.map((p) => p.price).filter((p) => p > 0);
+        const menuPackages = form.menu_packages.map((p) => {
+          const wd = Number(p.price_weekday) || Number(p.price_weekend) || 0;
+          const we = Number(p.price_weekend) || Number(p.price_weekday) || 0;
+          return {
+            name: p.name.trim(),
+            price: wd,
+            price_weekday: wd,
+            price_weekend: we,
+            includes_food: p.includes_food,
+            includes_alcohol: p.includes_alcohol,
+          };
+        });
+        const areas: CapacityArea[] = form.capacity_areas
+          .filter((a) => a.name.trim() && Number(a.min) && Number(a.max))
+          .map((a) => ({
+            name: a.name.trim(),
+            min: Number(a.min),
+            max: Number(a.max),
+          }));
+        const faqs: FaqItem[] = form.faqs
+          .filter((f) => f.q.trim() && f.a.trim())
+          .map((f) => ({ q: f.q.trim(), a: f.a.trim() }));
+        const campaign = form.campaign_title.trim()
+          ? {
+              title: form.campaign_title.trim(),
+              text: form.campaign_text.trim(),
+              discount_pct: Number(form.campaign_discount) || undefined,
+              min_guests: Number(form.campaign_min_guests) || undefined,
+              valid_until: form.campaign_valid_until || undefined,
+            }
+          : null;
+
         const input: VenueInput = {
           id: venue?.id,
           name: form.name,
@@ -206,14 +329,17 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
           address: form.address,
           phone: form.phone,
           whatsapp: form.whatsapp,
-          capacity_min: Number(form.capacity_min),
-          capacity_max: Number(form.capacity_max),
-          price_min: prices.length ? Math.min(...prices) : 0,
-          price_max: prices.length ? Math.max(...prices) : 0,
+          capacity_min: Number(form.capacity_min) || 0,
+          capacity_max: Number(form.capacity_max) || 0,
+          price_min: 0,
+          price_max: 0,
           venue_types: form.venue_types,
           categories: form.categories,
           features: form.features,
-          menu_packages: form.menu_packages,
+          menu_packages: menuPackages,
+          capacity_areas: areas,
+          faqs,
+          campaign,
           photo_urls: photoUrls,
         };
         const result = await saveVenue(input);
@@ -278,7 +404,10 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
               </div>
               <div>
                 <label className="text-sm font-medium text-ink">
-                  Mekan Tipi * <span className="font-normal text-mute">(birden fazla seçebilirsiniz)</span>
+                  Mekan Tipi *{" "}
+                  <span className="font-normal text-mute">
+                    (birden fazla seçebilirsiniz)
+                  </span>
                 </label>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {VENUE_TYPES.map((t) => (
@@ -312,11 +441,15 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
               </div>
               <div>
                 <label className="text-sm font-medium text-ink">Açıklama *</label>
+                <p className="text-xs text-mute">
+                  Başlık için ## kullanabilirsiniz (örn: ## Davet Alanları).
+                  Uzun ve bölümlü açıklama SEO&apos;da öne çıkar.
+                </p>
                 <textarea
                   value={form.description}
                   onChange={(e) => set("description", e.target.value)}
-                  rows={4}
-                  placeholder="Mekanınızı tanıtın: atmosferi, manzarası, sunduğunuz hizmetler…"
+                  rows={6}
+                  placeholder={"## Davet Alanları\nMekanınızı tanıtın…\n\n## Hizmetler\n- Menü tadımı\n- Organizasyon desteği"}
                   className="field mt-1.5 resize-none"
                 />
                 <p className="mt-1 text-xs text-mute">
@@ -369,8 +502,11 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
             <div className="flex flex-col gap-5">
               <div>
                 <label className="text-sm font-medium text-ink">
-                  Davetli Kapasitesi *
+                  Toplam Davetli Kapasitesi *
                 </label>
+                <p className="text-xs text-mute">
+                  Alt alan eklerseniz toplam otomatik hesaplanır.
+                </p>
                 <div className="mt-1.5 grid grid-cols-2 gap-3">
                   <input
                     type="number"
@@ -390,6 +526,59 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="text-sm font-medium text-ink">
+                  Alt Alanlar{" "}
+                  <span className="font-normal text-mute">(isteğe bağlı)</span>
+                </label>
+                <p className="text-xs text-mute">
+                  Havuz başı, açık alan, salon gibi farklı alanlarınız varsa
+                  ayrı ayrı ekleyin.
+                </p>
+                <div className="mt-2 flex flex-col gap-2">
+                  {form.capacity_areas.map((area, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input
+                        value={area.name}
+                        onChange={(e) => updateArea(i, { name: e.target.value })}
+                        placeholder="Alan adı"
+                        className="field flex-1"
+                      />
+                      <input
+                        type="number"
+                        value={area.min}
+                        onChange={(e) => updateArea(i, { min: e.target.value })}
+                        placeholder="Min"
+                        className="field w-20"
+                      />
+                      <input
+                        type="number"
+                        value={area.max}
+                        onChange={(e) => updateArea(i, { max: e.target.value })}
+                        placeholder="Max"
+                        className="field w-20"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeArea(i)}
+                        aria-label="Alanı kaldır"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-hairline text-mute hover:border-bordeaux/40 hover:text-bordeaux"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addArea}
+                    className="w-max rounded-full border border-hairline bg-parchment px-4 py-2 text-sm text-ink-soft hover:border-bordeaux/40 hover:text-bordeaux"
+                  >
+                    + Alan Ekle
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium text-ink">Telefon *</label>
@@ -422,9 +611,8 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
                   Kişi Başı Fiyat Paketleri *
                 </label>
                 <p className="mt-1 text-xs leading-relaxed text-mute">
-                  Yemekli/yemeksiz, alkollü/alkolsüz gibi farklı seçenekler için
-                  ayrı paketler ekleyin. Çiftler bu paketleri detay sayfasında
-                  karşılaştırır; filtreleme en düşük–en yüksek fiyata göre yapılır.
+                  Yemekli/alkollü seçeneklere göre paketler ekleyin. Hafta içi
+                  ve hafta sonu için ayrı fiyat girebilirsiniz.
                 </p>
               </div>
 
@@ -436,39 +624,42 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
 
               <div className="flex flex-col gap-3">
                 {form.menu_packages.map((pkg, i) => (
-                  <div
-                    key={i}
-                    className="rounded-2xl border border-hairline bg-parchment p-4"
-                  >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div key={i} className="rounded-2xl border border-hairline bg-parchment p-4">
+                    <div className="flex items-center gap-2">
                       <input
                         value={pkg.name}
-                        onChange={(e) =>
-                          updatePackage(i, { name: e.target.value })
-                        }
+                        onChange={(e) => updatePackage(i, { name: e.target.value })}
                         placeholder="Paket adı (örn: Yemekli Menü)"
                         className="field flex-1"
                       />
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min={1}
-                          value={pkg.price || ""}
-                          onChange={(e) =>
-                            updatePackage(i, { price: Number(e.target.value) })
-                          }
-                          placeholder="₺ / kişi"
-                          className="field w-28"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removePackage(i)}
-                          aria-label="Paketi kaldır"
-                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-hairline text-mute transition-colors hover:border-bordeaux/40 hover:text-bordeaux"
-                        >
-                          ✕
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removePackage(i)}
+                        aria-label="Paketi kaldır"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-hairline text-mute hover:border-bordeaux/40 hover:text-bordeaux"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <input
+                        type="number"
+                        value={pkg.price_weekday}
+                        onChange={(e) =>
+                          updatePackage(i, { price_weekday: e.target.value })
+                        }
+                        placeholder="Hafta içi ₺/kişi"
+                        className="field"
+                      />
+                      <input
+                        type="number"
+                        value={pkg.price_weekend}
+                        onChange={(e) =>
+                          updatePackage(i, { price_weekend: e.target.value })
+                        }
+                        placeholder="Hafta sonu ₺/kişi"
+                        className="field"
+                      />
                     </div>
                     <div className="mt-3 flex flex-wrap gap-4 text-sm text-ink-soft">
                       <label className="flex cursor-pointer items-center gap-2">
@@ -487,9 +678,7 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
                           type="checkbox"
                           checked={pkg.includes_alcohol}
                           onChange={(e) =>
-                            updatePackage(i, {
-                              includes_alcohol: e.target.checked,
-                            })
+                            updatePackage(i, { includes_alcohol: e.target.checked })
                           }
                           className="h-4 w-4 accent-[#7e2a3a]"
                         />
@@ -506,7 +695,7 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
                     key={preset.name}
                     type="button"
                     onClick={() => addPackage(preset)}
-                    className="rounded-full border border-hairline bg-parchment px-4 py-2 text-sm text-ink-soft transition-colors hover:border-bordeaux/40 hover:text-bordeaux"
+                    className="rounded-full border border-hairline bg-parchment px-4 py-2 text-sm text-ink-soft hover:border-bordeaux/40 hover:text-bordeaux"
                   >
                     + {preset.name}
                   </button>
@@ -514,7 +703,7 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
                 <button
                   type="button"
                   onClick={() => addPackage()}
-                  className="rounded-full bg-ink px-4 py-2 text-sm text-cream transition-colors hover:bg-ink-soft"
+                  className="rounded-full bg-ink px-4 py-2 text-sm text-cream hover:bg-ink-soft"
                 >
                   + Boş Paket
                 </button>
@@ -550,6 +739,106 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
           )}
 
           {step === 5 && (
+            <div className="flex flex-col gap-6">
+              {/* Kampanya */}
+              <div>
+                <label className="text-sm font-medium text-ink">
+                  Kampanya{" "}
+                  <span className="font-normal text-mute">(isteğe bağlı)</span>
+                </label>
+                <p className="text-xs text-mute">
+                  Aktif bir kampanyanız varsa detay sayfasında öne çıkar.
+                </p>
+                <div className="mt-2 flex flex-col gap-2">
+                  <input
+                    value={form.campaign_title}
+                    onChange={(e) => set("campaign_title", e.target.value)}
+                    placeholder="Kampanya başlığı (örn: Açılışa özel)"
+                    className="field"
+                  />
+                  <textarea
+                    value={form.campaign_text}
+                    onChange={(e) => set("campaign_text", e.target.value)}
+                    rows={2}
+                    placeholder="Kampanya detayı…"
+                    className="field resize-none"
+                  />
+                  <div className="grid grid-cols-3 gap-2">
+                    <input
+                      type="number"
+                      value={form.campaign_discount}
+                      onChange={(e) => set("campaign_discount", e.target.value)}
+                      placeholder="% indirim"
+                      className="field"
+                    />
+                    <input
+                      type="number"
+                      value={form.campaign_min_guests}
+                      onChange={(e) => set("campaign_min_guests", e.target.value)}
+                      placeholder="Min kişi"
+                      className="field"
+                    />
+                    <input
+                      type="date"
+                      value={form.campaign_valid_until}
+                      onChange={(e) => set("campaign_valid_until", e.target.value)}
+                      className="field"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SSS */}
+              <div>
+                <label className="text-sm font-medium text-ink">
+                  Sıkça Sorulan Sorular{" "}
+                  <span className="font-normal text-mute">(isteğe bağlı)</span>
+                </label>
+                <p className="text-xs text-mute">
+                  “Fiyatlara neler dahil?”, “Otopark var mı?” gibi sorular
+                  Google&apos;da öne çıkmanıza yardımcı olur.
+                </p>
+                <div className="mt-2 flex flex-col gap-3">
+                  {form.faqs.map((faq, i) => (
+                    <div key={i} className="rounded-2xl border border-hairline bg-parchment p-3">
+                      <div className="flex items-center gap-2">
+                        <input
+                          value={faq.q}
+                          onChange={(e) => updateFaq(i, { q: e.target.value })}
+                          placeholder="Soru"
+                          className="field flex-1"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeFaq(i)}
+                          aria-label="Soruyu kaldır"
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-hairline text-mute hover:border-bordeaux/40 hover:text-bordeaux"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <textarea
+                        value={faq.a}
+                        onChange={(e) => updateFaq(i, { a: e.target.value })}
+                        rows={2}
+                        placeholder="Cevap"
+                        className="field mt-2 resize-none"
+                      />
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addFaq}
+                    className="w-max rounded-full border border-hairline bg-parchment px-4 py-2 text-sm text-ink-soft hover:border-bordeaux/40 hover:text-bordeaux"
+                  >
+                    + Soru Ekle
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 6 && (
             <div className="flex flex-col gap-4">
               {venue && venue.photos.length > 0 && (
                 <div>
@@ -590,7 +879,6 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
               {!isSupabaseConfigured && (
                 <p className="rounded-2xl bg-gold/10 px-4 py-3 text-xs leading-relaxed text-ink-soft">
                   Demo modu: Supabase bağlantısı olmadan kayıt tamamlanamaz.
-                  Kurulum için README&apos;deki adımları izleyin.
                 </p>
               )}
             </div>
