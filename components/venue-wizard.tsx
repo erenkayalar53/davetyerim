@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   CATEGORIES,
   VENUE_TYPES,
-  FEATURES,
+  FEATURE_GROUPS,
   CITIES,
   MENU_PACKAGE_PRESETS,
 } from "@/lib/constants";
@@ -523,22 +523,29 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
           )}
 
           {step === 4 && (
-            <div>
+            <div className="flex flex-col gap-5">
               <label className="text-sm font-medium text-ink">
                 Mekanınızda hangi özellikler var?
               </label>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {FEATURES.map((f) => (
-                  <button
-                    key={f.slug}
-                    type="button"
-                    onClick={() => toggleInList("features", f.slug)}
-                    className={chip(form.features.includes(f.slug))}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
+              {FEATURE_GROUPS.map((group) => (
+                <div key={group.title}>
+                  <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-mute">
+                    {group.title}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {group.features.map((f) => (
+                      <button
+                        key={f.slug}
+                        type="button"
+                        onClick={() => toggleInList("features", f.slug)}
+                        className={chip(form.features.includes(f.slug))}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 

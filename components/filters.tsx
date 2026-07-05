@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import {
   CATEGORIES,
   VENUE_TYPES,
-  FEATURES,
+  FEATURE_GROUPS,
   CITIES,
   CAPACITY_RANGES,
   PRICE_RANGES,
@@ -188,22 +188,24 @@ export function Filters({ citySlug }: { citySlug?: string }) {
         })}
       </FilterGroup>
 
-      <FilterGroup title="Mekan Özellikleri">
-        {FEATURES.map((feature) => (
-          <label
-            key={feature.slug}
-            className="flex cursor-pointer items-center gap-2.5 py-0.5 text-[13px] text-ink-soft"
-          >
-            <input
-              type="checkbox"
-              checked={activeFeatures.includes(feature.slug)}
-              onChange={() => toggleFeature(feature.slug)}
-              className="h-4 w-4 accent-[#7e2a3a]"
-            />
-            {feature.label}
-          </label>
-        ))}
-      </FilterGroup>
+      {FEATURE_GROUPS.map((group) => (
+        <FilterGroup key={group.title} title={group.title}>
+          {group.features.map((feature) => (
+            <label
+              key={feature.slug}
+              className="flex cursor-pointer items-center gap-2.5 py-0.5 text-[13px] text-ink-soft"
+            >
+              <input
+                type="checkbox"
+                checked={activeFeatures.includes(feature.slug)}
+                onChange={() => toggleFeature(feature.slug)}
+                className="h-4 w-4 accent-[#7e2a3a]"
+              />
+              {feature.label}
+            </label>
+          ))}
+        </FilterGroup>
+      ))}
     </div>
   );
 

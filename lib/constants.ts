@@ -20,25 +20,89 @@ export const VENUE_TYPES = [
   { slug: "cati-teras", label: "Çatı & Teras" },
   { slug: "balo-salonu", label: "Balo Salonu" },
   { slug: "davet-evi", label: "Davet Evi" },
+  { slug: "kokteyl-mekani", label: "Kokteyl Mekanı" },
+  { slug: "kultur-merkezi", label: "Kültür Merkezi" },
+  { slug: "kosk-konak", label: "Köşk & Konak" },
 ] as const;
 
-export const FEATURES = [
-  { slug: "deniz-kenari", label: "Deniz Kenarı" },
-  { slug: "havuz-basi", label: "Havuz Başı" },
-  { slug: "acik-alan", label: "Açık Alan" },
-  { slug: "kapali-alan", label: "Kapalı Alan" },
-  { slug: "otopark", label: "Otopark & Vale" },
-  { slug: "alkol-servisi", label: "Alkol Servisi" },
-  { slug: "yemekli", label: "Yemekli Organizasyon" },
-  { slug: "sadece-kiralama", label: "Sadece Kiralama" },
-  { slug: "gelin-odasi", label: "Gelin Odası" },
-  { slug: "sahne-ses-isik", label: "Sahne & Ses-Işık" },
-  { slug: "konaklama", label: "Konaklama" },
-  { slug: "engelli-erisimi", label: "Engelli Erişimi" },
-  { slug: "cocuk-oyun-alani", label: "Çocuk Oyun Alanı" },
-  { slug: "havai-fisek", label: "Havai Fişek İzni" },
-  { slug: "jenerator", label: "Jeneratör" },
+// Düğün.com tarzı gruplandırılmış mekan özellikleri.
+// Mevcut slug'lar korundu; yeni özellikler eklendi.
+export const FEATURE_GROUPS = [
+  {
+    title: "Manzara & Konum",
+    features: [
+      { slug: "deniz-manzarasi", label: "Deniz Manzarası" },
+      { slug: "bogaz-manzarasi", label: "Boğaz Manzarası" },
+      { slug: "gol-manzarasi", label: "Göl Manzarası" },
+      { slug: "doga-manzarasi", label: "Doğa Manzarası" },
+      { slug: "sehir-manzarasi", label: "Şehir Manzarası" },
+      { slug: "deniz-kenari", label: "Deniz Kenarı" },
+      { slug: "havuz-basi", label: "Havuz Başı" },
+    ],
+  },
+  {
+    title: "Alan Türü",
+    features: [
+      { slug: "acik-alan", label: "Açık Alan" },
+      { slug: "kapali-alan", label: "Kapalı Alan" },
+      { slug: "bahce", label: "Bahçe" },
+      { slug: "kisin-acik", label: "Kışın da Hizmet" },
+    ],
+  },
+  {
+    title: "İkram & Menü",
+    features: [
+      { slug: "yemekli", label: "Yemekli Servis" },
+      { slug: "kokteyl-bufe", label: "Kokteyl / Açık Büfe" },
+      { slug: "fix-menu", label: "Fix Menü" },
+      { slug: "limitsiz-icecek", label: "Limitsiz İçecek" },
+      { slug: "alkol-servisi", label: "Alkol Servisi" },
+      { slug: "pasta-ikrami", label: "Pasta İkramı" },
+      { slug: "sadece-kiralama", label: "Sadece Kiralama" },
+    ],
+  },
+  {
+    title: "Sahne & Teknik",
+    features: [
+      { slug: "sahne-ses-isik", label: "Sahne & Ses-Işık" },
+      { slug: "dj", label: "DJ" },
+      { slug: "canli-muzik", label: "Canlı Müzik / Orkestra" },
+      { slug: "led-ekran", label: "LED Ekran" },
+      { slug: "havai-fisek", label: "Havai Fişek İzni" },
+      { slug: "surpriz-gosteri", label: "Sürpriz Gösteri" },
+      { slug: "jenerator", label: "Jeneratör" },
+    ],
+  },
+  {
+    title: "Konfor",
+    features: [
+      { slug: "klima", label: "Klima" },
+      { slug: "gelin-odasi", label: "Gelin Hazırlık Odası" },
+      { slug: "damat-odasi", label: "Damat Odası" },
+      { slug: "nikah-alani", label: "Nikah Alanı" },
+      { slug: "otopark", label: "Otopark" },
+      { slug: "vale", label: "Vale Hizmeti" },
+      { slug: "engelli-erisimi", label: "Engelli Erişimi" },
+      { slug: "konaklama", label: "Konaklama" },
+      { slug: "cocuk-oyun-alani", label: "Çocuk Oyun Alanı" },
+    ],
+  },
+  {
+    title: "Ekstra Hizmetler",
+    features: [
+      { slug: "cicek-susleme", label: "Çiçek & Süsleme" },
+      { slug: "gelin-arabasi", label: "Gelin Arabası" },
+      { slug: "foto-video", label: "Fotoğraf & Video" },
+      { slug: "organizasyon", label: "Organizasyon Danışmanı" },
+      { slug: "servis-elemani", label: "Servis Elemanları" },
+      { slug: "nikah-sekeri", label: "Nikah Şekeri" },
+    ],
+  },
 ] as const;
+
+export const FEATURES: { slug: string; label: string }[] = FEATURE_GROUPS.flatMap(
+  (g) => g.features.map((f) => ({ slug: f.slug as string, label: f.label as string }))
+);
 
 export const CITIES = [
   "İstanbul",
