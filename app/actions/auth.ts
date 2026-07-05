@@ -97,7 +97,7 @@ export async function signUp(
 
   if (data.session) {
     revalidatePath("/", "layout");
-    redirect(accountType === "owner" ? "/panel" : "/");
+    redirect(accountType === "owner" ? "/mekan-sahibi-ol" : "/");
   }
 
   return {

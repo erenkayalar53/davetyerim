@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/app/actions/auth";
-import type { UserRole } from "@/lib/types";
+import type { UserRole, OwnerStatus } from "@/lib/types";
 
 const NAV_LINKS = [
   { href: "/mekanlar", label: "Mekanlar" },
@@ -16,12 +16,14 @@ const NAV_LINKS = [
 interface HeaderProps {
   isLoggedIn: boolean;
   role: UserRole | null;
+  ownerStatus: OwnerStatus | null;
 }
 
-export function Header({ isLoggedIn, role }: HeaderProps) {
+export function Header({ isLoggedIn, role, ownerStatus }: HeaderProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const isOwner = role === "owner" || role === "admin";
+  const isPending = ownerStatus === "pending";
 
   useEffect(() => {
     setOpen(false);
@@ -96,6 +98,13 @@ export function Header({ isLoggedIn, role }: HeaderProps) {
                     className="hidden rounded-full bg-ink py-2 px-5 text-sm font-medium text-cream transition-all duration-500 ease-lux hover:bg-ink-soft active:scale-[0.98] sm:block"
                   >
                     Panelim
+                  </Link>
+                ) : isPending ? (
+                  <Link
+                    href="/mekan-sahibi-ol"
+                    className="hidden rounded-full border border-gold/40 bg-gold/10 py-2 px-5 text-sm font-medium text-gold transition-colors duration-500 ease-lux sm:block"
+                  >
+                    Başvuru İnceleniyor
                   </Link>
                 ) : (
                   <Link
@@ -187,9 +196,13 @@ export function Header({ isLoggedIn, role }: HeaderProps) {
           {isLoggedIn && !isOwner && (
             <Link
               href="/mekan-sahibi-ol"
-              className="rounded-full bg-bordeaux px-6 py-4 text-center font-medium text-cream"
+              className={`rounded-full px-6 py-4 text-center font-medium ${
+                isPending
+                  ? "border border-gold/40 bg-gold/10 text-gold"
+                  : "bg-bordeaux text-cream"
+              }`}
             >
-              Mekan Sahibi Ol
+              {isPending ? "Başvuru İnceleniyor" : "Mekan Sahibi Ol"}
             </Link>
           )}
           {isLoggedIn && (

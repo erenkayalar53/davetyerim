@@ -26,7 +26,13 @@ export async function getSessionProfile(): Promise<{
       id: user.id,
       full_name: "",
       phone: null,
-      role: "owner",
+      role: "user",
+      owner_status: "none",
+      business_name: null,
+      business_phone: null,
+      business_city: null,
+      tax_id: null,
+      application_note: null,
     },
   };
 }

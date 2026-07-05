@@ -9,8 +9,9 @@ import {
   setVenuePlan,
   toggleVenueFeatured,
 } from "@/app/actions/admin";
+import { approveOwner, rejectOwner } from "@/app/actions/owner";
 import { venueTypeLabel, formatPrice } from "@/lib/constants";
-import type { Venue, VenuePhoto } from "@/lib/types";
+import type { Venue, VenuePhoto, Profile } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Admin Paneli",
@@ -27,13 +28,21 @@ export default async function AdminPage() {
   if (session.profile.role !== "admin") redirect("/panel");
 
   const supabase = await createClient();
-  const [{ data: venueData }, { count: leadCount }] = await Promise.all([
-    supabase
-      .from("venues")
-      .select("*, photos:venue_photos(*)")
-      .order("created_at", { ascending: false }),
-    supabase.from("leads").select("*", { count: "exact", head: true }),
-  ]);
+  const [{ data: venueData }, { count: leadCount }, { data: applicationData }] =
+    await Promise.all([
+      supabase
+        .from("venues")
+        .select("*, photos:venue_photos(*)")
+        .order("created_at", { ascending: false }),
+      supabase.from("leads").select("*", { count: "exact", head: true }),
+      supabase
+        .from("profiles")
+        .select("*")
+        .eq("owner_status", "pending")
+        .order("id", { ascending: true }),
+    ]);
+
+  const applications = (applicationData as Profile[]) ?? [];
 
   const venues = ((venueData as VenueRow[]) ?? []).map((v) => ({
     ...v,
@@ -55,8 +64,8 @@ export default async function AdminPage() {
       <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: "Toplam Mekan", value: venues.length },
-          { label: "Onay Bekleyen", value: pending.length },
-          { label: "Yayında", value: approved.length },
+          { label: "Bekleyen Mekan", value: pending.length },
+          { label: "Bekleyen Başvuru", value: applications.length },
           { label: "Teklif İsteği", value: leadCount ?? 0 },
         ].map((stat) => (
           <div
@@ -73,10 +82,68 @@ export default async function AdminPage() {
         ))}
       </div>
 
+      {/* Mekan sahibi başvuruları */}
+      <section className="mt-14">
+        <h2 className="font-display text-2xl font-semibold text-ink">
+          Mekan Sahibi Başvuruları ({applications.length})
+        </h2>
+        {applications.length === 0 ? (
+          <p className="mt-4 text-sm text-ink-soft">
+            Bekleyen işletme başvurusu yok.
+          </p>
+        ) : (
+          <div className="mt-6 flex flex-col gap-4">
+            {applications.map((app) => (
+              <div
+                key={app.id}
+                className="flex flex-col gap-4 rounded-[1.75rem] border border-gold/30 bg-parchment p-5 shadow-float lg:flex-row lg:items-center lg:justify-between"
+              >
+                <div className="min-w-0">
+                  <h3 className="font-display text-lg font-semibold text-ink">
+                    {app.business_name ?? "İsimsiz işletme"}
+                  </h3>
+                  <p className="mt-1 text-sm text-mute">
+                    Yetkili: {app.full_name || "—"} · Tel:{" "}
+                    {app.business_phone ?? app.phone ?? "—"} ·{" "}
+                    {app.business_city ?? "—"}
+                    {app.tax_id ? ` · Vergi/TC: ${app.tax_id}` : ""}
+                  </p>
+                  {app.application_note && (
+                    <p className="mt-2 text-sm text-ink-soft">
+                      “{app.application_note}”
+                    </p>
+                  )}
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <form action={approveOwner}>
+                    <input type="hidden" name="user_id" value={app.id} />
+                    <button
+                      type="submit"
+                      className="rounded-full bg-sage px-5 py-2.5 text-sm font-medium text-cream transition-opacity hover:opacity-90"
+                    >
+                      Onayla
+                    </button>
+                  </form>
+                  <form action={rejectOwner}>
+                    <input type="hidden" name="user_id" value={app.id} />
+                    <button
+                      type="submit"
+                      className="rounded-full border border-bordeaux/30 px-5 py-2.5 text-sm font-medium text-bordeaux transition-colors hover:bg-bordeaux/5"
+                    >
+                      Reddet
+                    </button>
+                  </form>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
       {/* Onay kuyruğu */}
       <section className="mt-14">
         <h2 className="font-display text-2xl font-semibold text-ink">
-          Onay Kuyruğu ({pending.length})
+          Mekan Onay Kuyruğu ({pending.length})
         </h2>
         {pending.length === 0 ? (
           <p className="mt-4 text-sm text-ink-soft">

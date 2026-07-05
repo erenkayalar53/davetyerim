@@ -48,6 +48,7 @@ export default async function RootLayout({
         <Header
           isLoggedIn={Boolean(session)}
           role={session?.profile.role ?? null}
+          ownerStatus={session?.profile.owner_status ?? null}
         />
         <main className="flex-1">{children}</main>
         <Footer />

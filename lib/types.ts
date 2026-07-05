@@ -58,11 +58,19 @@ export interface Lead {
   created_at: string;
 }
 
+export type OwnerStatus = "none" | "pending" | "approved" | "rejected";
+
 export interface Profile {
   id: string;
   full_name: string;
   phone: string | null;
   role: UserRole;
+  owner_status: OwnerStatus;
+  business_name: string | null;
+  business_phone: string | null;
+  business_city: string | null;
+  tax_id: string | null;
+  application_note: string | null;
 }
 
 export interface VenueFilters {

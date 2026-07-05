@@ -59,15 +59,3 @@ export async function toggleFavorite(
   return { ok: true, favorited: true };
 }
 
-export async function becomeOwner(): Promise<{ ok: boolean }> {
-  if (!isSupabaseConfigured()) return { ok: false };
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false };
-
-  await supabase.rpc("become_owner");
-  revalidatePath("/", "layout");
-  return { ok: true };
-}

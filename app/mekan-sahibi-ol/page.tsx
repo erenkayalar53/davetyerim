@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Reveal } from "@/components/reveal";
-import { BecomeOwnerButton } from "@/components/become-owner-button";
+import { OwnerApplicationForm } from "@/components/owner-application-form";
 import { getSessionProfile } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
 
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 const BENEFITS = [
   {
     title: "Ücretsiz listelenin",
-    text: "Mekanınızı dakikalar içinde ekleyin, binlerce çift tarafından keşfedilin. Komisyon yok.",
+    text: "Onaydan sonra mekanınızı dakikalar içinde ekleyin, binlerce çift tarafından keşfedilin. Komisyon yok.",
   },
   {
     title: "Teklif isteklerini toplayın",
@@ -26,13 +26,17 @@ const BENEFITS = [
 ];
 
 export default async function BecomeOwnerPage() {
-  if (isSupabaseConfigured()) {
-    const session = await getSessionProfile();
-    if (!session) redirect("/kayit?tip=mekan");
-    if (session.profile.role === "owner" || session.profile.role === "admin") {
-      redirect("/panel");
-    }
+  if (!isSupabaseConfigured()) {
+    redirect("/kayit?tip=mekan");
   }
+
+  const session = await getSessionProfile();
+  if (!session) redirect("/kayit?tip=mekan");
+  if (session.profile.role === "owner" || session.profile.role === "admin") {
+    redirect("/panel");
+  }
+
+  const status = session.profile.owner_status;
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-24 pt-32 sm:pt-40">
@@ -44,29 +48,65 @@ export default async function BecomeOwnerPage() {
           Mekanını platforma taşı
         </h1>
         <p className="mt-4 max-w-xl leading-relaxed text-ink-soft">
-          Hesabını mekan sahibi hesabına yükselt, mekanını ekle ve teklif
-          isteklerini almaya başla. Bu işlem ücretsizdir ve saniyeler sürer.
+          İşletme bilgilerinizle başvurun; ekibimiz doğruladıktan sonra
+          hesabınız mekan sahibi olarak aktifleşir ve mekanınızı
+          ekleyebilirsiniz.
         </p>
       </Reveal>
 
-      <div className="mt-12 grid gap-4 sm:grid-cols-3">
-        {BENEFITS.map((benefit, i) => (
-          <Reveal key={benefit.title} delay={i * 100}>
-            <div className="h-full rounded-[1.5rem] border border-hairline bg-parchment p-6">
-              <p className="font-display text-lg font-semibold text-ink">
-                {benefit.title}
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                {benefit.text}
-              </p>
-            </div>
-          </Reveal>
-        ))}
-      </div>
+      {status === "pending" ? (
+        <Reveal className="mt-12">
+          <div className="rounded-[1.75rem] border border-gold/30 bg-parchment p-8 text-center shadow-float">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gold/15 text-xl">
+              ⏳
+            </span>
+            <p className="mt-4 font-display text-xl font-semibold text-ink">
+              Başvurunuz inceleniyor
+            </p>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-ink-soft">
+              <strong>{session.profile.business_name}</strong> için
+              başvurunuz alındı. Ekibimiz en kısa sürede değerlendirip
+              hesabınızı aktifleştirecek. Onaylandığında panelinizden
+              mekanınızı ekleyebilirsiniz.
+            </p>
+          </div>
+        </Reveal>
+      ) : (
+        <>
+          <div className="mt-12 grid gap-4 sm:grid-cols-3">
+            {BENEFITS.map((benefit, i) => (
+              <Reveal key={benefit.title} delay={i * 100}>
+                <div className="h-full rounded-[1.5rem] border border-hairline bg-parchment p-6">
+                  <p className="font-display text-lg font-semibold text-ink">
+                    {benefit.title}
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                    {benefit.text}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
 
-      <Reveal className="mt-12">
-        <BecomeOwnerButton />
-      </Reveal>
+          {status === "rejected" && (
+            <Reveal className="mt-8">
+              <p className="rounded-2xl bg-bordeaux/10 px-5 py-4 text-sm text-bordeaux">
+                Önceki başvurunuz onaylanmadı. Bilgilerinizi güncelleyip
+                tekrar başvurabilirsiniz.
+              </p>
+            </Reveal>
+          )}
+
+          <Reveal className="mt-8">
+            <OwnerApplicationForm
+              defaultName={session.profile.business_name ?? ""}
+              defaultPhone={
+                session.profile.business_phone ?? session.profile.phone
+              }
+            />
+          </Reveal>
+        </>
+      )}
     </div>
   );
 }
