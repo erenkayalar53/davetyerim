@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #faf6ef;
+  --color-cream-deep: #f2eadd;
+  --color-parchment: #fffdf8;
+  --color-ink: #221b14;
+  --color-ink-soft: #57493c;
+  --color-mute: #8d7f6f;
+  --color-hairline: rgb(34 27 20 / 0.09);
+  --color-bordeaux: #7e2a3a;
+  --color-bordeaux-deep: #5e1d2a;
+  --color-blush: #f2e3dc;
+  --color-sage: #77806b;
+  --color-gold: #a9853f;
+
+  --font-display: var(--font-fraunces), "Georgia", serif;
+  --font-sans: var(--font-jakarta), "Segoe UI", sans-serif;
+
+  --ease-lux: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --shadow-float: 0 2px 4px rgb(34 27 20 / 0.03), 0 12px 32px rgb(34 27 20 / 0.06);
+  --shadow-lift: 0 4px 8px rgb(34 27 20 / 0.04), 0 24px 64px rgb(34 27 20 / 0.1);
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-bordeaux);
+  color: var(--color-cream);
+}
+
+/* Kağıt dokusu — sabit, tıklamayı engellemez */
+.grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Scroll reveal — IntersectionObserver .in-view ekler */
+.reveal {
+  opacity: 0;
+  transform: translateY(2.5rem);
+  filter: blur(6px);
+  transition:
+    opacity 0.9s var(--ease-lux),
+    transform 0.9s var(--ease-lux),
+    filter 0.9s var(--ease-lux);
+}
+
+.reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* İnce yatay kaydırma çubukları (galeri şeritleri) */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-mute) transparent;
+}
+
+/* Form elemanları */
+.field {
+  width: 100%;
+  border: 1px solid var(--color-hairline);
+  background: var(--color-parchment);
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  color: var(--color-ink);
+  outline: none;
+  transition: border-color 0.4s var(--ease-lux), box-shadow 0.4s var(--ease-lux);
+}
+
+.field:focus {
+  border-color: var(--color-bordeaux);
+  box-shadow: 0 0 0 4px rgb(126 42 58 / 0.08);
+}
+
+.field::placeholder {
+  color: var(--color-mute);
+}
