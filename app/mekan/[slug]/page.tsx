@@ -6,7 +6,13 @@ import { LeadForm } from "@/components/lead-form";
 import { PhoneReveal } from "@/components/phone-reveal";
 import { VenueCard } from "@/components/venue-card";
 import { Reveal } from "@/components/reveal";
-import { getVenueBySlug, getSimilarVenues } from "@/lib/data";
+import { FavoriteButton } from "@/components/favorite-button";
+import {
+  getVenueBySlug,
+  getSimilarVenues,
+  getFavoriteVenueIds,
+  recordVenueView,
+} from "@/lib/data";
 import {
   categoryLabel,
   featureLabel,
@@ -40,7 +46,14 @@ export default async function VenuePage({ params }: PageProps) {
   const venue = await getVenueBySlug(slug);
   if (!venue) notFound();
 
-  const similar = await getSimilarVenues(venue);
+  await recordVenueView(venue.id);
+  const [similar, favoriteIds] = await Promise.all([
+    getSimilarVenues(venue),
+    getFavoriteVenueIds(),
+  ]);
+  const venueTypes = venue.venue_types?.length
+    ? venue.venue_types
+    : [venue.venue_type];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -124,9 +137,14 @@ export default async function VenuePage({ params }: PageProps) {
       <div className="mt-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-blush px-3 py-1 text-xs font-medium text-bordeaux">
-              {venueTypeLabel(venue.venue_type)}
-            </span>
+            {venueTypes.map((t) => (
+              <span
+                key={t}
+                className="rounded-full bg-blush px-3 py-1 text-xs font-medium text-bordeaux"
+              >
+                {venueTypeLabel(t)}
+              </span>
+            ))}
             {venue.plan === "premium" && (
               <span className="rounded-full bg-ink px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-cream">
                 Öne Çıkan
@@ -164,10 +182,10 @@ export default async function VenuePage({ params }: PageProps) {
                 value: `${venue.capacity_min} – ${venue.capacity_max}`,
               },
               { label: "Şehir", value: venue.city },
-              { label: "Tip", value: venueTypeLabel(venue.venue_type) },
+              { label: "Tip", value: venueTypeLabel(venueTypes[0]) },
               {
-                label: "Etkinlikler",
-                value: `${venue.categories.length} tür`,
+                label: "Görüntülenme",
+                value: `${venue.view_count}`,
               },
             ].map((item) => (
               <div
@@ -193,6 +211,62 @@ export default async function VenuePage({ params }: PageProps) {
               {venue.description}
             </p>
           </Reveal>
+
+          {/* Fiyat paketleri */}
+          {venue.menu_packages.length > 0 && (
+            <Reveal className="mt-10">
+              <h2 className="font-display text-2xl font-semibold text-ink">
+                Fiyat Paketleri
+              </h2>
+              <p className="mt-2 text-sm text-mute">
+                Kişi başı fiyatlar. Kesin teklif için tarih ve davetli sayınızla
+                ücretsiz teklif isteyin.
+              </p>
+              <div className="mt-4 overflow-hidden rounded-[1.5rem] border border-hairline">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-cream-deep/60 text-[10px] uppercase tracking-[0.15em] text-mute">
+                    <tr>
+                      <th className="px-5 py-3.5 font-medium">Paket</th>
+                      <th className="px-4 py-3.5 text-center font-medium">Yemek</th>
+                      <th className="px-4 py-3.5 text-center font-medium">Alkol</th>
+                      <th className="px-5 py-3.5 text-right font-medium">
+                        Kişi Başı
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-parchment">
+                    {venue.menu_packages.map((pkg, i) => (
+                      <tr
+                        key={i}
+                        className="border-t border-hairline first:border-0"
+                      >
+                        <td className="px-5 py-4 font-medium text-ink">
+                          {pkg.name}
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          {pkg.includes_food ? (
+                            <span className="text-sage">✓</span>
+                          ) : (
+                            <span className="text-mute/50">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          {pkg.includes_alcohol ? (
+                            <span className="text-sage">✓</span>
+                          ) : (
+                            <span className="text-mute/50">—</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-4 text-right font-display text-base font-semibold text-bordeaux">
+                          {formatPrice(pkg.price)} ₺
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Reveal>
+          )}
 
           {/* Etkinlik türleri */}
           <Reveal className="mt-10">
@@ -265,6 +339,14 @@ export default async function VenuePage({ params }: PageProps) {
               </p>
             )}
           </div>
+
+          <div className="mt-4 flex w-full flex-col">
+            <FavoriteButton
+              venueId={venue.id}
+              initialFavorited={favoriteIds.has(venue.id)}
+              variant="detail"
+            />
+          </div>
         </aside>
       </div>
 
@@ -279,7 +361,7 @@ export default async function VenuePage({ params }: PageProps) {
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {similar.map((v, i) => (
               <Reveal key={v.id} delay={i * 80}>
-                <VenueCard venue={v} />
+                <VenueCard venue={v} favorited={favoriteIds.has(v.id)} />
               </Reveal>
             ))}
           </div>

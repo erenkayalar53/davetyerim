@@ -5,11 +5,24 @@ import type { Venue, VenueFilters, VenuePhoto } from "./types";
 
 export const PAGE_SIZE = 12;
 
-type VenueRow = Omit<Venue, "photos"> & { photos: VenuePhoto[] | null };
+type VenueRow = Omit<Venue, "photos" | "venue_types" | "menu_packages"> & {
+  photos: VenuePhoto[] | null;
+  venue_types: string[] | null;
+  menu_packages: Venue["menu_packages"] | null;
+  view_count?: number | null;
+};
 
 function normalize(row: VenueRow): Venue {
+  const venue_types =
+    row.venue_types && row.venue_types.length > 0
+      ? row.venue_types
+      : [row.venue_type];
   return {
     ...row,
+    venue_types,
+    venue_type: row.venue_type ?? venue_types[0],
+    menu_packages: row.menu_packages ?? [],
+    view_count: row.view_count ?? 0,
     photos: (row.photos ?? []).sort((a, b) => a.sort_order - b.sort_order),
   };
 }
@@ -40,7 +53,12 @@ function applyFilters(venues: Venue[], f: VenueFilters): Venue[] {
   return venues.filter((v) => {
     if (f.city && slugifyTr(v.city) !== slugifyTr(f.city)) return false;
     if (f.category && !v.categories.includes(f.category)) return false;
-    if (f.venueType && v.venue_type !== f.venueType) return false;
+    if (
+      f.venueType &&
+      !v.venue_types.includes(f.venueType) &&
+      v.venue_type !== f.venueType
+    )
+      return false;
     if (f.capacityMin !== undefined && v.capacity_max < f.capacityMin)
       return false;
     if (f.capacityMax !== undefined && v.capacity_min > f.capacityMax)
@@ -85,7 +103,8 @@ export async function getVenues(
   if (cityName) query = query.eq("city", cityName);
   if (filters.category)
     query = query.contains("categories", [filters.category]);
-  if (filters.venueType) query = query.eq("venue_type", filters.venueType);
+  if (filters.venueType)
+    query = query.contains("venue_types", [filters.venueType]);
   if (filters.capacityMin !== undefined)
     query = query.gte("capacity_max", filters.capacityMin);
   if (filters.capacityMax !== undefined)
@@ -204,4 +223,62 @@ export async function getCityCounts(): Promise<
   return [...counts.entries()]
     .map(([city, count]) => ({ city, slug: slugifyTr(city), count }))
     .sort((a, b) => b.count - a.count);
+}
+
+// Admin önizleme: onay durumundan bağımsız mekan getir (RLS admin/sahip erişimi verir)
+export async function getVenueByIdForPreview(id: string): Promise<Venue | null> {
+  if (!isSupabaseConfigured()) {
+    return MOCK_VENUES.find((v) => v.id === id) ?? null;
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("venues")
+    .select("*, photos:venue_photos(*)")
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !data) return null;
+  return normalize(data as VenueRow);
+}
+
+// Görüntülenme sayacını artır (RPC — anon dahil güvenli)
+export async function recordVenueView(venueId: string): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+  if (venueId.startsWith("mock-")) return;
+  const supabase = await createClient();
+  await supabase.rpc("increment_venue_view", { vid: venueId });
+}
+
+// Giriş yapmış kullanıcının favori mekan ID'leri
+export async function getFavoriteVenueIds(): Promise<Set<string>> {
+  if (!isSupabaseConfigured()) return new Set();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return new Set();
+  const { data } = await supabase
+    .from("favorites")
+    .select("venue_id")
+    .eq("user_id", user.id);
+  return new Set((data ?? []).map((f) => f.venue_id as string));
+}
+
+// Kullanıcının favori mekanlarının tamamı (Favorilerim sayfası)
+export async function getFavoriteVenues(): Promise<Venue[]> {
+  if (!isSupabaseConfigured()) return [];
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data } = await supabase
+    .from("favorites")
+    .select("venue:venues(*, photos:venue_photos(*))")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  return ((data ?? []) as unknown as { venue: VenueRow | null }[])
+    .map((row) => row.venue)
+    .filter((v): v is VenueRow => v !== null && v.status === "approved")
+    .map(normalize);
 }

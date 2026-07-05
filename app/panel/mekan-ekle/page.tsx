@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 export default async function AddVenuePage() {
   if (isSupabaseConfigured()) {
     const session = await getSessionProfile();
-    if (!session) redirect("/kayit");
+    if (!session) redirect("/kayit?tip=mekan");
+    if (session.profile.role === "user") redirect("/mekan-sahibi-ol");
   }
 
   return (

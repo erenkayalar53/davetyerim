@@ -10,10 +10,18 @@ import {
   VENUE_TYPES,
   FEATURES,
   CITIES,
+  MENU_PACKAGE_PRESETS,
 } from "@/lib/constants";
-import type { Venue } from "@/lib/types";
+import type { MenuPackage, Venue } from "@/lib/types";
 
-const STEPS = ["Bilgiler", "Konum", "Kapasite & Fiyat", "Özellikler", "Fotoğraflar"];
+const STEPS = [
+  "Bilgiler",
+  "Konum",
+  "Kapasite",
+  "Fiyat Paketleri",
+  "Özellikler",
+  "Fotoğraflar",
+];
 
 const isSupabaseConfigured = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -22,7 +30,7 @@ const isSupabaseConfigured = Boolean(
 
 interface WizardState {
   name: string;
-  venue_type: string;
+  venue_types: string[];
   description: string;
   categories: string[];
   city: string;
@@ -32,15 +40,18 @@ interface WizardState {
   whatsapp: string;
   capacity_min: string;
   capacity_max: string;
-  price_min: string;
-  price_max: string;
   features: string[];
+  menu_packages: MenuPackage[];
 }
 
 function fromVenue(venue?: Venue): WizardState {
   return {
     name: venue?.name ?? "",
-    venue_type: venue?.venue_type ?? "",
+    venue_types: venue?.venue_types?.length
+      ? venue.venue_types
+      : venue?.venue_type
+        ? [venue.venue_type]
+        : [],
     description: venue?.description ?? "",
     categories: venue?.categories ?? [],
     city: venue?.city ?? "",
@@ -50,9 +61,8 @@ function fromVenue(venue?: Venue): WizardState {
     whatsapp: venue?.whatsapp ?? "",
     capacity_min: venue ? String(venue.capacity_min) : "",
     capacity_max: venue ? String(venue.capacity_max) : "",
-    price_min: venue ? String(venue.price_min) : "",
-    price_max: venue ? String(venue.price_max) : "",
     features: venue?.features ?? [],
+    menu_packages: venue?.menu_packages?.length ? venue.menu_packages : [],
   };
 }
 
@@ -68,7 +78,10 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function toggleInList(key: "categories" | "features", value: string) {
+  function toggleInList(
+    key: "categories" | "features" | "venue_types",
+    value: string
+  ) {
     setForm((prev) => ({
       ...prev,
       [key]: prev[key].includes(value)
@@ -77,11 +90,43 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
     }));
   }
 
+  function addPackage(preset?: (typeof MENU_PACKAGE_PRESETS)[number]) {
+    setForm((prev) => ({
+      ...prev,
+      menu_packages: [
+        ...prev.menu_packages,
+        {
+          name: preset?.name ?? "",
+          price: 0,
+          includes_food: preset?.includes_food ?? true,
+          includes_alcohol: preset?.includes_alcohol ?? false,
+        },
+      ],
+    }));
+  }
+
+  function updatePackage(index: number, patch: Partial<MenuPackage>) {
+    setForm((prev) => ({
+      ...prev,
+      menu_packages: prev.menu_packages.map((p, i) =>
+        i === index ? { ...p, ...patch } : p
+      ),
+    }));
+  }
+
+  function removePackage(index: number) {
+    setForm((prev) => ({
+      ...prev,
+      menu_packages: prev.menu_packages.filter((_, i) => i !== index),
+    }));
+  }
+
   function validateStep(): string {
     switch (step) {
       case 0:
         if (form.name.trim().length < 3) return "Mekan adı en az 3 karakter olmalı.";
-        if (!form.venue_type) return "Mekan tipi seçin.";
+        if (form.venue_types.length === 0)
+          return "En az bir mekan tipi seçin (birden fazla seçebilirsiniz).";
         if (form.categories.length === 0) return "En az bir etkinlik türü seçin.";
         if (form.description.trim().length < 30)
           return "Açıklama en az 30 karakter olmalı — mekanınızı tanıtın.";
@@ -93,14 +138,20 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
       case 2: {
         const capMin = Number(form.capacity_min);
         const capMax = Number(form.capacity_max);
-        const priceMin = Number(form.price_min);
-        const priceMax = Number(form.price_max);
         if (!capMin || !capMax || capMax < capMin)
           return "Geçerli bir kapasite aralığı girin.";
-        if (!priceMin || !priceMax || priceMax < priceMin)
-          return "Geçerli bir kişi başı fiyat aralığı girin.";
         if (form.phone.replace(/\D/g, "").length < 10)
           return "Geçerli bir telefon numarası girin.";
+        return "";
+      }
+      case 3: {
+        if (form.menu_packages.length === 0)
+          return "En az bir fiyat paketi ekleyin (örn: Yemekli Menü).";
+        for (const p of form.menu_packages) {
+          if (!p.name.trim()) return "Her paketin bir adı olmalı.";
+          if (!p.price || p.price <= 0)
+            return "Her paket için geçerli bir kişi başı fiyat girin.";
+        }
         return "";
       }
       default:
@@ -145,6 +196,7 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
     startTransition(async () => {
       try {
         const photoUrls = await uploadPhotos();
+        const prices = form.menu_packages.map((p) => p.price).filter((p) => p > 0);
         const input: VenueInput = {
           id: venue?.id,
           name: form.name,
@@ -156,11 +208,12 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
           whatsapp: form.whatsapp,
           capacity_min: Number(form.capacity_min),
           capacity_max: Number(form.capacity_max),
-          price_min: Number(form.price_min),
-          price_max: Number(form.price_max),
-          venue_type: form.venue_type,
+          price_min: prices.length ? Math.min(...prices) : 0,
+          price_max: prices.length ? Math.max(...prices) : 0,
+          venue_types: form.venue_types,
           categories: form.categories,
           features: form.features,
+          menu_packages: form.menu_packages,
           photo_urls: photoUrls,
         };
         const result = await saveVenue(input);
@@ -224,14 +277,16 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-ink">Mekan Tipi *</label>
+                <label className="text-sm font-medium text-ink">
+                  Mekan Tipi * <span className="font-normal text-mute">(birden fazla seçebilirsiniz)</span>
+                </label>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {VENUE_TYPES.map((t) => (
                     <button
                       key={t.slug}
                       type="button"
-                      onClick={() => set("venue_type", t.slug)}
-                      className={chip(form.venue_type === t.slug)}
+                      onClick={() => toggleInList("venue_types", t.slug)}
+                      className={chip(form.venue_types.includes(t.slug))}
                     >
                       {t.label}
                     </button>
@@ -335,33 +390,6 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
                   />
                 </div>
               </div>
-              <div>
-                <label className="text-sm font-medium text-ink">
-                  Kişi Başı Fiyat (₺) *
-                </label>
-                <p className="text-xs text-mute">
-                  Menü ve sezona göre değişen aralığınızı girin — çiftler
-                  filtrelemede bunu kullanır.
-                </p>
-                <div className="mt-1.5 grid grid-cols-2 gap-3">
-                  <input
-                    type="number"
-                    min={1}
-                    value={form.price_min}
-                    onChange={(e) => set("price_min", e.target.value)}
-                    placeholder="En düşük ₺"
-                    className="field"
-                  />
-                  <input
-                    type="number"
-                    min={1}
-                    value={form.price_max}
-                    onChange={(e) => set("price_max", e.target.value)}
-                    placeholder="En yüksek ₺"
-                    className="field"
-                  />
-                </div>
-              </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium text-ink">Telefon *</label>
@@ -388,6 +416,113 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
           )}
 
           {step === 3 && (
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="text-sm font-medium text-ink">
+                  Kişi Başı Fiyat Paketleri *
+                </label>
+                <p className="mt-1 text-xs leading-relaxed text-mute">
+                  Yemekli/yemeksiz, alkollü/alkolsüz gibi farklı seçenekler için
+                  ayrı paketler ekleyin. Çiftler bu paketleri detay sayfasında
+                  karşılaştırır; filtreleme en düşük–en yüksek fiyata göre yapılır.
+                </p>
+              </div>
+
+              {form.menu_packages.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-mute/40 bg-parchment/60 p-6 text-center text-sm text-mute">
+                  Henüz paket eklemediniz. Aşağıdan hızlıca ekleyin.
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3">
+                {form.menu_packages.map((pkg, i) => (
+                  <div
+                    key={i}
+                    className="rounded-2xl border border-hairline bg-parchment p-4"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                      <input
+                        value={pkg.name}
+                        onChange={(e) =>
+                          updatePackage(i, { name: e.target.value })
+                        }
+                        placeholder="Paket adı (örn: Yemekli Menü)"
+                        className="field flex-1"
+                      />
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min={1}
+                          value={pkg.price || ""}
+                          onChange={(e) =>
+                            updatePackage(i, { price: Number(e.target.value) })
+                          }
+                          placeholder="₺ / kişi"
+                          className="field w-28"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removePackage(i)}
+                          aria-label="Paketi kaldır"
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-hairline text-mute transition-colors hover:border-bordeaux/40 hover:text-bordeaux"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-4 text-sm text-ink-soft">
+                      <label className="flex cursor-pointer items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={pkg.includes_food}
+                          onChange={(e) =>
+                            updatePackage(i, { includes_food: e.target.checked })
+                          }
+                          className="h-4 w-4 accent-[#7e2a3a]"
+                        />
+                        Yemek dahil
+                      </label>
+                      <label className="flex cursor-pointer items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={pkg.includes_alcohol}
+                          onChange={(e) =>
+                            updatePackage(i, {
+                              includes_alcohol: e.target.checked,
+                            })
+                          }
+                          className="h-4 w-4 accent-[#7e2a3a]"
+                        />
+                        Alkol dahil
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {MENU_PACKAGE_PRESETS.map((preset) => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => addPackage(preset)}
+                    className="rounded-full border border-hairline bg-parchment px-4 py-2 text-sm text-ink-soft transition-colors hover:border-bordeaux/40 hover:text-bordeaux"
+                  >
+                    + {preset.name}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => addPackage()}
+                  className="rounded-full bg-ink px-4 py-2 text-sm text-cream transition-colors hover:bg-ink-soft"
+                >
+                  + Boş Paket
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
             <div>
               <label className="text-sm font-medium text-ink">
                 Mekanınızda hangi özellikler var?
@@ -407,7 +542,7 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
             </div>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <div className="flex flex-col gap-4">
               {venue && venue.photos.length > 0 && (
                 <div>

@@ -3,6 +3,7 @@ import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import { SITE_NAME, SITE_URL, SITE_DESCRIPTION } from "@/lib/constants";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { getSessionProfile } from "@/lib/auth";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -31,18 +32,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getSessionProfile();
+
   return (
     <html
       lang="tr"
       className={`${fraunces.variable} ${jakarta.variable} h-full antialiased`}
     >
       <body className="grain min-h-full flex flex-col">
-        <Header />
+        <Header
+          isLoggedIn={Boolean(session)}
+          role={session?.profile.role ?? null}
+        />
         <main className="flex-1">{children}</main>
         <Footer />
       </body>

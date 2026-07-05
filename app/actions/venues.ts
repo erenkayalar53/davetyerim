@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { slugifyTr } from "@/lib/constants";
+import type { MenuPackage } from "@/lib/types";
 
 export interface VenueInput {
   id?: string;
@@ -17,9 +18,10 @@ export interface VenueInput {
   capacity_max: number;
   price_min: number;
   price_max: number;
-  venue_type: string;
+  venue_types: string[];
   categories: string[];
   features: string[];
+  menu_packages: MenuPackage[];
   photo_urls: string[];
 }
 
@@ -31,7 +33,7 @@ export interface SaveVenueResult {
 function validate(input: VenueInput): string | null {
   if (!input.name || input.name.trim().length < 3)
     return "Mekan adı en az 3 karakter olmalıdır.";
-  if (!input.venue_type) return "Mekan tipi seçin.";
+  if (input.venue_types.length === 0) return "En az bir mekan tipi seçin.";
   if (!input.city) return "Şehir seçin.";
   if (!input.description || input.description.trim().length < 30)
     return "Açıklama en az 30 karakter olmalıdır.";
@@ -44,6 +46,17 @@ function validate(input: VenueInput): string | null {
   if (!input.phone || input.phone.replace(/\D/g, "").length < 10)
     return "Geçerli bir telefon numarası girin.";
   return null;
+}
+
+// Menü paketleri varsa fiyat aralığını onlardan türet
+function priceRange(input: VenueInput): { min: number; max: number } {
+  const prices = input.menu_packages
+    .map((p) => p.price)
+    .filter((p) => p > 0);
+  if (prices.length > 0) {
+    return { min: Math.min(...prices), max: Math.max(...prices) };
+  }
+  return { min: input.price_min, max: input.price_max };
 }
 
 export async function saveVenue(input: VenueInput): Promise<SaveVenueResult> {
@@ -66,6 +79,8 @@ export async function saveVenue(input: VenueInput): Promise<SaveVenueResult> {
     return { ok: false, message: "Oturumunuz sonlanmış, tekrar giriş yapın." };
   }
 
+  const { min: priceMin, max: priceMax } = priceRange(input);
+
   const venueData = {
     name: input.name.trim(),
     description: input.description.trim(),
@@ -76,11 +91,13 @@ export async function saveVenue(input: VenueInput): Promise<SaveVenueResult> {
     whatsapp: input.whatsapp.trim(),
     capacity_min: input.capacity_min,
     capacity_max: input.capacity_max,
-    price_min: input.price_min,
-    price_max: input.price_max,
-    venue_type: input.venue_type,
+    price_min: priceMin,
+    price_max: priceMax,
+    venue_type: input.venue_types[0],
+    venue_types: input.venue_types,
     categories: input.categories,
     features: input.features,
+    menu_packages: input.menu_packages,
   };
 
   let venueId = input.id;

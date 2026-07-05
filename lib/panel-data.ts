@@ -27,6 +27,25 @@ export async function getMyVenues(): Promise<Venue[]> {
   return ((data as VenueRow[]) ?? []).map(normalize);
 }
 
+// Mekan sahibinin mekanları için favori sayıları: { venue_id: count }
+export async function getVenueFavoriteCounts(
+  venueIds: string[]
+): Promise<Record<string, number>> {
+  if (!isSupabaseConfigured() || venueIds.length === 0) return {};
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("favorites")
+    .select("venue_id")
+    .in("venue_id", venueIds);
+
+  const counts: Record<string, number> = {};
+  for (const row of data ?? []) {
+    const id = row.venue_id as string;
+    counts[id] = (counts[id] ?? 0) + 1;
+  }
+  return counts;
+}
+
 export async function getVenueForOwner(id: string): Promise<Venue | null> {
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();

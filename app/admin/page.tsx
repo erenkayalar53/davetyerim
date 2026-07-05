@@ -114,7 +114,13 @@ export default async function AdminPage() {
                     {venue.description}
                   </p>
                 </div>
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <Link
+                    href={`/admin/onizleme/${venue.id}`}
+                    className="rounded-full border border-hairline px-5 py-2.5 text-sm font-medium text-ink-soft transition-colors hover:border-bordeaux/40 hover:text-bordeaux"
+                  >
+                    İncele
+                  </Link>
                   <form action={setVenueStatus}>
                     <input type="hidden" name="id" value={venue.id} />
                     <input type="hidden" name="status" value="approved" />

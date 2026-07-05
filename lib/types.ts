@@ -1,6 +1,6 @@
 export type VenueStatus = "pending" | "approved" | "rejected";
 export type VenuePlan = "free" | "premium";
-export type UserRole = "owner" | "admin";
+export type UserRole = "user" | "owner" | "admin";
 
 export interface VenuePhoto {
   id: string;
@@ -8,6 +8,13 @@ export interface VenuePhoto {
   url: string;
   sort_order: number;
   is_cover: boolean;
+}
+
+export interface MenuPackage {
+  name: string;
+  price: number;
+  includes_food: boolean;
+  includes_alcohol: boolean;
 }
 
 export interface Venue {
@@ -26,8 +33,11 @@ export interface Venue {
   price_min: number;
   price_max: number;
   venue_type: string;
+  venue_types: string[];
   categories: string[];
   features: string[];
+  menu_packages: MenuPackage[];
+  view_count: number;
   status: VenueStatus;
   plan: VenuePlan;
   featured: boolean;

@@ -2,7 +2,7 @@ import { VenueCard } from "@/components/venue-card";
 import { Filters } from "@/components/filters";
 import { SortSelect } from "@/components/sort-select";
 import { Pagination } from "@/components/pagination";
-import { getVenues, cityFromSlug } from "@/lib/data";
+import { getVenues, cityFromSlug, getFavoriteVenueIds } from "@/lib/data";
 import { parseFilters, type SearchParams } from "@/lib/search-params";
 import { categoryLabel, SITE_URL } from "@/lib/constants";
 
@@ -26,7 +26,10 @@ export async function VenueDirectory({
   searchParams: SearchParams;
 }) {
   const filters = parseFilters(searchParams, citySlug);
-  const { venues, total, pageSize } = await getVenues(filters);
+  const [{ venues, total, pageSize }, favoriteIds] = await Promise.all([
+    getVenues(filters),
+    getFavoriteVenueIds(),
+  ]);
   const title = directoryTitle(citySlug, filters.category);
   const basePath = citySlug ? `/mekanlar/${citySlug}` : "/mekanlar";
 
@@ -80,7 +83,11 @@ export async function VenueDirectory({
           ) : (
             <div className="grid gap-5 sm:grid-cols-2">
               {venues.map((venue) => (
-                <VenueCard key={venue.id} venue={venue} />
+                <VenueCard
+                  key={venue.id}
+                  venue={venue}
+                  favorited={favoriteIds.has(venue.id)}
+                />
               ))}
             </div>
           )}

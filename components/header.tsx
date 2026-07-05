@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { signOut } from "@/app/actions/auth";
+import type { UserRole } from "@/lib/types";
 
 const NAV_LINKS = [
   { href: "/mekanlar", label: "Mekanlar" },
@@ -11,9 +13,15 @@ const NAV_LINKS = [
   { href: "/iletisim", label: "İletişim" },
 ];
 
-export function Header() {
+interface HeaderProps {
+  isLoggedIn: boolean;
+  role: UserRole | null;
+}
+
+export function Header({ isLoggedIn, role }: HeaderProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const isOwner = role === "owner" || role === "admin";
 
   useEffect(() => {
     setOpen(false);
@@ -54,21 +62,51 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <Link
-              href="/giris"
-              className="hidden rounded-full px-4 py-2 text-sm text-ink-soft transition-colors duration-500 ease-lux hover:text-ink sm:block"
-            >
-              Giriş
-            </Link>
-            <Link
-              href="/panel/mekan-ekle"
-              className="group hidden items-center gap-2 rounded-full bg-bordeaux py-2 pl-5 pr-2 text-sm font-medium text-cream transition-all duration-500 ease-lux hover:bg-bordeaux-deep active:scale-[0.98] sm:flex"
-            >
-              Mekanını Ekle
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 ease-lux group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105">
-                ↗
-              </span>
-            </Link>
+            {!isLoggedIn && (
+              <>
+                <Link
+                  href="/giris"
+                  className="hidden rounded-full px-4 py-2 text-sm text-ink-soft transition-colors duration-500 ease-lux hover:text-ink sm:block"
+                >
+                  Giriş
+                </Link>
+                <Link
+                  href="/kayit?tip=mekan"
+                  className="group hidden items-center gap-2 rounded-full bg-bordeaux py-2 pl-5 pr-2 text-sm font-medium text-cream transition-all duration-500 ease-lux hover:bg-bordeaux-deep active:scale-[0.98] sm:flex"
+                >
+                  Mekanını Ekle
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 ease-lux group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105">
+                    ↗
+                  </span>
+                </Link>
+              </>
+            )}
+
+            {isLoggedIn && (
+              <>
+                <Link
+                  href="/favorilerim"
+                  className="hidden rounded-full px-4 py-2 text-sm text-ink-soft transition-colors duration-500 ease-lux hover:text-ink sm:block"
+                >
+                  Favorilerim
+                </Link>
+                {isOwner ? (
+                  <Link
+                    href="/panel"
+                    className="hidden rounded-full bg-ink py-2 px-5 text-sm font-medium text-cream transition-all duration-500 ease-lux hover:bg-ink-soft active:scale-[0.98] sm:block"
+                  >
+                    Panelim
+                  </Link>
+                ) : (
+                  <Link
+                    href="/mekan-sahibi-ol"
+                    className="hidden rounded-full bg-bordeaux py-2 px-5 text-sm font-medium text-cream transition-all duration-500 ease-lux hover:bg-bordeaux-deep active:scale-[0.98] sm:block"
+                  >
+                    Mekan Sahibi Ol
+                  </Link>
+                )}
+              </>
+            )}
 
             <button
               type="button"
@@ -99,14 +137,16 @@ export function Header() {
         }`}
       >
         <nav className="flex flex-col gap-2">
-          {[{ href: "/", label: "Ana Sayfa" }, ...NAV_LINKS].map((link, i) => (
+          {[
+            { href: "/", label: "Ana Sayfa" },
+            ...NAV_LINKS,
+            ...(isLoggedIn ? [{ href: "/favorilerim", label: "Favorilerim" }] : []),
+          ].map((link, i) => (
             <Link
               key={link.href}
               href={link.href}
               className={`font-display text-4xl font-medium text-ink transition-all duration-700 ease-lux ${
-                open
-                  ? "translate-y-0 opacity-100"
-                  : "translate-y-12 opacity-0"
+                open ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"
               }`}
               style={{ transitionDelay: open ? `${100 + i * 60}ms` : "0ms" }}
             >
@@ -120,18 +160,48 @@ export function Header() {
           }`}
           style={{ transitionDelay: open ? "460ms" : "0ms" }}
         >
-          <Link
-            href="/panel/mekan-ekle"
-            className="rounded-full bg-bordeaux px-6 py-4 text-center font-medium text-cream"
-          >
-            Mekanını Ücretsiz Ekle
-          </Link>
-          <Link
-            href="/giris"
-            className="rounded-full border border-hairline bg-parchment px-6 py-4 text-center text-ink"
-          >
-            Mekan Sahibi Girişi
-          </Link>
+          {!isLoggedIn && (
+            <>
+              <Link
+                href="/kayit?tip=mekan"
+                className="rounded-full bg-bordeaux px-6 py-4 text-center font-medium text-cream"
+              >
+                Mekanını Ücretsiz Ekle
+              </Link>
+              <Link
+                href="/giris"
+                className="rounded-full border border-hairline bg-parchment px-6 py-4 text-center text-ink"
+              >
+                Giriş Yap
+              </Link>
+            </>
+          )}
+          {isLoggedIn && isOwner && (
+            <Link
+              href="/panel"
+              className="rounded-full bg-ink px-6 py-4 text-center font-medium text-cream"
+            >
+              Panelim
+            </Link>
+          )}
+          {isLoggedIn && !isOwner && (
+            <Link
+              href="/mekan-sahibi-ol"
+              className="rounded-full bg-bordeaux px-6 py-4 text-center font-medium text-cream"
+            >
+              Mekan Sahibi Ol
+            </Link>
+          )}
+          {isLoggedIn && (
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="w-full rounded-full border border-hairline bg-parchment px-6 py-4 text-center text-ink"
+              >
+                Çıkış Yap
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </>

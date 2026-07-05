@@ -4,7 +4,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionProfile } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
-import { getMyVenues, getMyLeads } from "@/lib/panel-data";
+import {
+  getMyVenues,
+  getMyLeads,
+  getVenueFavoriteCounts,
+} from "@/lib/panel-data";
 import { signOut } from "@/app/actions/auth";
 import {
   categoryLabel,
@@ -48,12 +52,19 @@ export default async function PanelPage({ searchParams }: PageProps) {
 
   const session = await getSessionProfile();
   if (!session) redirect("/giris");
+  if (session.profile.role === "user") redirect("/mekan-sahibi-ol");
 
   const [venues, leads, sp] = await Promise.all([
     getMyVenues(),
     getMyLeads(),
     searchParams,
   ]);
+  const favoriteCounts = await getVenueFavoriteCounts(venues.map((v) => v.id));
+  const totalViews = venues.reduce((sum, v) => sum + v.view_count, 0);
+  const totalFavorites = Object.values(favoriteCounts).reduce(
+    (sum, c) => sum + c,
+    0
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-24 pt-32 sm:pt-36">
@@ -90,6 +101,30 @@ export default async function PanelPage({ searchParams }: PageProps) {
         <p className="mt-6 rounded-2xl bg-sage/10 px-5 py-4 text-sm text-sage">
           {sp.mesaj}
         </p>
+      )}
+
+      {/* Özet istatistikler */}
+      {venues.length > 0 && (
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { label: "Mekan", value: venues.length },
+            { label: "Toplam Görüntülenme", value: totalViews },
+            { label: "Toplam Favori", value: totalFavorites },
+            { label: "Teklif İsteği", value: leads.length },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-2xl border border-hairline bg-parchment px-5 py-4"
+            >
+              <p className="font-display text-3xl font-semibold text-bordeaux">
+                {stat.value}
+              </p>
+              <p className="mt-1 text-[11px] uppercase tracking-[0.15em] text-mute">
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* Mekanlarım */}
@@ -162,6 +197,14 @@ export default async function PanelPage({ searchParams }: PageProps) {
                       kişi · {formatPrice(venue.price_min)}-
                       {formatPrice(venue.price_max)} ₺/kişi
                     </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <span className="rounded-full bg-cream-deep/70 px-3 py-1 text-xs text-ink-soft">
+                        👁 {venue.view_count} görüntülenme
+                      </span>
+                      <span className="rounded-full bg-cream-deep/70 px-3 py-1 text-xs text-ink-soft">
+                        ♥ {favoriteCounts[venue.id] ?? 0} favori
+                      </span>
+                    </div>
                   </div>
                   <div className="flex shrink-0 gap-2">
                     {venue.status === "approved" && (

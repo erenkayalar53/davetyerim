@@ -79,6 +79,18 @@ export function venueTypeLabel(slug: string): string {
   return VENUE_TYPES.find((t) => t.slug === slug)?.label ?? slug;
 }
 
+export function venueTypesLabels(slugs: string[]): string[] {
+  return slugs.map(venueTypeLabel);
+}
+
+// Mekan sahibinin fiyat paketi eklerken kullanabileceği hazır şablonlar
+export const MENU_PACKAGE_PRESETS = [
+  { name: "Yemekli Menü (Alkolsüz)", includes_food: true, includes_alcohol: false },
+  { name: "Yemekli Menü (Alkollü)", includes_food: true, includes_alcohol: true },
+  { name: "Kokteyl İkramı", includes_food: true, includes_alcohol: false },
+  { name: "Sadece Mekan Kiralama", includes_food: false, includes_alcohol: false },
+] as const;
+
 export function featureLabel(slug: string): string {
   return FEATURES.find((f) => f.slug === slug)?.label ?? slug;
 }

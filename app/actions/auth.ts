@@ -26,7 +26,7 @@ export async function signIn(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
@@ -35,8 +35,20 @@ export async function signIn(
     return { ok: false, message: "E-posta veya şifre hatalı." };
   }
 
+  let destination = "/";
+  if (data.user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", data.user.id)
+      .maybeSingle();
+    if (profile?.role === "owner" || profile?.role === "admin") {
+      destination = "/panel";
+    }
+  }
+
   revalidatePath("/", "layout");
-  redirect("/panel");
+  redirect(destination);
 }
 
 export async function signUp(
@@ -49,6 +61,10 @@ export async function signUp(
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const accountType =
+    String(formData.get("account_type") ?? "user") === "owner"
+      ? "owner"
+      : "user";
 
   if (!fullName || fullName.length < 3) {
     return { ok: false, message: "Lütfen adınızı ve soyadınızı girin." };
@@ -65,7 +81,7 @@ export async function signUp(
     email,
     password,
     options: {
-      data: { full_name: fullName, phone },
+      data: { full_name: fullName, phone, account_type: accountType },
     },
   });
 
@@ -81,7 +97,7 @@ export async function signUp(
 
   if (data.session) {
     revalidatePath("/", "layout");
-    redirect("/panel");
+    redirect(accountType === "owner" ? "/panel" : "/");
   }
 
   return {

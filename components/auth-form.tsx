@@ -1,14 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useActionState, useState } from "react";
 import { signIn, signUp, type AuthFormState } from "@/app/actions/auth";
 
 const initialState: AuthFormState = { ok: null, message: "" };
 
 export function AuthForm({ mode }: { mode: "giris" | "kayit" }) {
+  const searchParams = useSearchParams();
   const action = mode === "giris" ? signIn : signUp;
   const [state, formAction, pending] = useActionState(action, initialState);
+  const [accountType, setAccountType] = useState<"user" | "owner">(
+    searchParams.get("tip") === "mekan" ? "owner" : "user"
+  );
 
   return (
     <div className="rounded-[1.75rem] border border-hairline bg-parchment p-1.5 shadow-lift">
@@ -17,16 +22,47 @@ export function AuthForm({ mode }: { mode: "giris" | "kayit" }) {
         className="flex flex-col gap-3 rounded-[calc(1.75rem-0.375rem)] bg-cream p-7"
       >
         <h1 className="font-display text-2xl font-semibold text-ink">
-          {mode === "giris" ? "Mekan Sahibi Girişi" : "Mekan Sahibi Kaydı"}
+          {mode === "giris" ? "Giriş Yap" : "Hesap Oluştur"}
         </h1>
         <p className="-mt-1 text-sm text-mute">
           {mode === "giris"
-            ? "Panelinize erişin, teklif isteklerinizi görün."
-            : "Ücretsiz hesap oluşturun, mekanınızı dakikalar içinde ekleyin."}
+            ? "Favorilerine ve teklif isteklerine eriş."
+            : "Mekan keşfet, favorile ya da mekanını platforma ekle."}
         </p>
 
         {mode === "kayit" && (
           <>
+            <input type="hidden" name="account_type" value={accountType} />
+            <div className="mt-1 grid grid-cols-2 gap-2 rounded-2xl bg-cream-deep/60 p-1">
+              <button
+                type="button"
+                onClick={() => setAccountType("user")}
+                className={`rounded-xl py-2.5 text-sm font-medium transition-colors duration-300 ${
+                  accountType === "user"
+                    ? "bg-parchment text-bordeaux shadow-float"
+                    : "text-ink-soft hover:text-ink"
+                }`}
+              >
+                Bireysel
+              </button>
+              <button
+                type="button"
+                onClick={() => setAccountType("owner")}
+                className={`rounded-xl py-2.5 text-sm font-medium transition-colors duration-300 ${
+                  accountType === "owner"
+                    ? "bg-parchment text-bordeaux shadow-float"
+                    : "text-ink-soft hover:text-ink"
+                }`}
+              >
+                Mekan Sahibi
+              </button>
+            </div>
+            <p className="-mt-1 text-xs leading-relaxed text-mute">
+              {accountType === "user"
+                ? "Mekanları favorileyin, teklif isteklerinizi takip edin."
+                : "Mekanınızı ekleyin, gelen teklif isteklerini ve istatistikleri görün."}
+            </p>
+
             <input
               name="full_name"
               placeholder="Adınız Soyadınız *"

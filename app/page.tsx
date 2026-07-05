@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/reveal";
 import { SearchBox } from "@/components/search-box";
 import { VenueCard } from "@/components/venue-card";
-import { getFeaturedVenues, getCityCounts } from "@/lib/data";
+import { getFeaturedVenues, getCityCounts, getFavoriteVenueIds } from "@/lib/data";
 import { CATEGORIES } from "@/lib/constants";
 
 const CATEGORY_IMAGES: Record<string, string> = {
@@ -23,9 +23,10 @@ const CATEGORY_IMAGES: Record<string, string> = {
 };
 
 export default async function HomePage() {
-  const [featured, cities] = await Promise.all([
+  const [featured, cities, favoriteIds] = await Promise.all([
     getFeaturedVenues(6),
     getCityCounts(),
+    getFavoriteVenueIds(),
   ]);
 
   return (
@@ -164,7 +165,7 @@ export default async function HomePage() {
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((venue, i) => (
               <Reveal key={venue.id} delay={i * 80}>
-                <VenueCard venue={venue} />
+                <VenueCard venue={venue} favorited={favoriteIds.has(venue.id)} />
               </Reveal>
             ))}
           </div>
