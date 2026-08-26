@@ -4,6 +4,7 @@ import type { Venue } from "@/lib/types";
 import { venueTypeLabel, formatPrice } from "@/lib/constants";
 import { FavoriteButton } from "@/components/favorite-button";
 import { Stars } from "@/components/stars";
+import { VENUE_BLUR } from "@/lib/image-placeholder";
 
 export function VenueCard({
   venue,
@@ -26,6 +27,8 @@ export function VenueCard({
               alt={venue.name}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              placeholder="blur"
+              blurDataURL={VENUE_BLUR}
               className="object-cover transition-transform duration-1000 ease-lux group-hover:scale-105"
             />
           ) : (

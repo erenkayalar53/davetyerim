@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import type { VenuePhoto } from "@/lib/types";
+import { VENUE_BLUR } from "@/lib/image-placeholder";
 
 export function Gallery({
   photos,
@@ -31,6 +32,8 @@ export function Gallery({
           fill
           priority={active === 0}
           sizes="(max-width: 1024px) 100vw, 60vw"
+          placeholder="blur"
+          blurDataURL={VENUE_BLUR}
           className="object-cover"
         />
         {photos.length > 1 && (

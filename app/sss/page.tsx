@@ -101,7 +101,7 @@ export default function FaqPage() {
         <span className="rounded-full border border-hairline bg-parchment px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-mute">
           Sıkça Sorulan Sorular
         </span>
-        <h1 className="mx-auto mt-5 max-w-2xl font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl">
+        <h1 className="mx-auto mt-5 max-w-2xl font-display text-fluid-section font-semibold text-ink">
           Merak edilenler
         </h1>
       </Reveal>

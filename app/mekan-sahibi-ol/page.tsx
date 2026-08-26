@@ -4,6 +4,7 @@ import { Reveal } from "@/components/reveal";
 import { OwnerApplicationForm } from "@/components/owner-application-form";
 import { getSessionProfile } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
+import { IconCheck } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Mekan Sahibi Ol",
@@ -48,7 +49,7 @@ export default async function BecomeOwnerPage() {
         <span className="rounded-full border border-hairline bg-parchment px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-mute">
           Mekan Sahibi Ol
         </span>
-        <h1 className="mt-5 font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl">
+        <h1 className="mt-5 font-display text-fluid-section font-semibold text-ink">
           Mekanını platforma taşı
         </h1>
         <p className="mt-4 max-w-xl leading-relaxed text-ink-soft">
@@ -132,8 +133,8 @@ export default async function BecomeOwnerPage() {
                     key={doc.name}
                     className="flex items-start gap-3 rounded-2xl border border-hairline bg-cream px-4 py-3.5"
                   >
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blush text-xs text-bordeaux">
-                      ✓
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blush text-bordeaux">
+                      <IconCheck size={13} strokeWidth={2.6} />
                     </span>
                     <div>
                       <p className="text-sm font-medium text-ink">

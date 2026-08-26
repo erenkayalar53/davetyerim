@@ -13,6 +13,7 @@ import {
   MENU_PACKAGE_PRESETS,
 } from "@/lib/constants";
 import type { CapacityArea, FaqItem, Venue } from "@/lib/types";
+import { IconClose } from "@/components/icons";
 
 const STEPS = [
   "Bilgiler",
@@ -262,6 +263,48 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
   }
 
+  /**
+   * Yüklenen görseli JPEG'e çevirir ve uzun kenarını 2000px ile sınırlar.
+   *
+   * Neden: AVIF/HEIC dosyalar Next.js'in görüntü optimize edicisi tarafından
+   * işlenemiyor — dosya olduğu gibi geçiyor, yani 256px'lik bir kart küçük
+   * resmi için tam boy dosya indiriliyor. Aynı sebeple sosyal paylaşım
+   * görsellerinde de kapak fotoğrafı boş kalıyor. JPEG olarak saklayınca
+   * Next kendi AVIF/WebP türevlerini doğru boyutlarda üretebiliyor.
+   */
+  async function normalizeImage(file: File): Promise<File> {
+    try {
+      const bitmap = await createImageBitmap(file);
+      const MAX_EDGE = 2000;
+      const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+      const width = Math.round(bitmap.width * scale);
+      const height = Math.round(bitmap.height * scale);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        bitmap.close();
+        return file;
+      }
+      ctx.drawImage(bitmap, 0, 0, width, height);
+      bitmap.close();
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", 0.86)
+      );
+      if (!blob) return file;
+
+      const base = file.name.replace(/\.[^.]+$/, "") || "foto";
+      return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
+    } catch {
+      // Tarayıcı bu formatı çözemediyse orijinali yükle — yükleme hiç
+      // başarısız olmaktansa optimize edilmemiş olsun.
+      return file;
+    }
+  }
+
   async function uploadPhotos(): Promise<string[]> {
     if (files.length === 0 || !isSupabaseConfigured) return [];
     const supabase = createClient();
@@ -271,11 +314,15 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
     if (!user) throw new Error("Oturum bulunamadı");
     const urls: string[] = [];
     for (const [i, file] of files.entries()) {
-      const ext = file.name.split(".").pop() ?? "jpg";
+      const normalized = await normalizeImage(file);
+      const ext = normalized.name.split(".").pop() ?? "jpg";
       const path = `${user.id}/${Date.now()}-${i}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from("venue-photos")
-        .upload(path, file, { cacheControl: "31536000" });
+        .upload(path, normalized, {
+          cacheControl: "31536000",
+          contentType: normalized.type,
+        });
       if (uploadError) throw new Error(uploadError.message);
       const { data } = supabase.storage.from("venue-photos").getPublicUrl(path);
       urls.push(data.publicUrl);
@@ -565,7 +612,7 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
                         aria-label="Alanı kaldır"
                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-hairline text-mute hover:border-bordeaux/40 hover:text-bordeaux"
                       >
-                        ✕
+                        <IconClose size={15} />
                       </button>
                     </div>
                   ))}
@@ -638,7 +685,7 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
                         aria-label="Paketi kaldır"
                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-hairline text-mute hover:border-bordeaux/40 hover:text-bordeaux"
                       >
-                        ✕
+                        <IconClose size={15} />
                       </button>
                     </div>
                     <div className="mt-2 grid grid-cols-2 gap-2">
@@ -814,7 +861,7 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
                           aria-label="Soruyu kaldır"
                           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-hairline text-mute hover:border-bordeaux/40 hover:text-bordeaux"
                         >
-                          ✕
+                          <IconClose size={15} />
                         </button>
                       </div>
                       <textarea

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CATEGORIES, CITIES, slugifyTr } from "@/lib/constants";
+import { IconArrowUpRight } from "@/components/icons";
 
 export function Footer() {
   return (
@@ -19,7 +20,8 @@ export function Footer() {
               href="/panel/mekan-ekle"
               className="mt-6 inline-flex items-center gap-2 rounded-full border border-bordeaux/30 px-5 py-2.5 text-sm font-medium text-bordeaux transition-colors duration-500 ease-lux hover:bg-bordeaux hover:text-cream"
             >
-              Mekanını Ücretsiz Ekle ↗
+              Mekanını Ücretsiz Ekle
+              <IconArrowUpRight size={14} />
             </Link>
           </div>
 

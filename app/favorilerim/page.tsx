@@ -24,7 +24,7 @@ export default async function FavoritesPage() {
       <span className="rounded-full border border-hairline bg-parchment px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-mute">
         Favorilerim
       </span>
-      <h1 className="mt-4 font-display text-3xl font-semibold text-ink sm:text-4xl">
+      <h1 className="mt-4 font-display text-fluid-title font-semibold text-ink">
         Beğendiğin mekanlar
       </h1>
 

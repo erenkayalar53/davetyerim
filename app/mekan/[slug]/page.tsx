@@ -30,6 +30,7 @@ import {
   slugifyTr,
   SITE_URL,
 } from "@/lib/constants";
+import { IconCheck } from "@/components/icons";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -41,12 +42,14 @@ export async function generateMetadata({
   const { slug } = await params;
   const venue = await getVenueBySlug(slug);
   if (!venue) return {};
-  const cover = venue.photos[0]?.url;
   return {
     title: `${venue.name} — ${venue.city} ${venueTypeLabel(venue.venue_type)} Fiyatları`,
     description: `${venue.name} (${venue.district ? venue.district + ", " : ""}${venue.city}) — ${venue.capacity_min}-${venue.capacity_max} kişi kapasiteli, kişi başı ${formatPrice(venue.price_min)}-${formatPrice(venue.price_max)} ₺. Ücretsiz teklif alın.`,
     alternates: { canonical: `/mekan/${venue.slug}` },
-    openGraph: cover ? { images: [{ url: cover }] } : undefined,
+    // openGraph.images'i burada ELLE VERMEYİN: verilirse opengraph-image.tsx'i
+    // ezer ve ham fotoğraf URL'i paylaşılır. Depodaki fotoğraflar AVIF olabiliyor
+    // ve sosyal medya tarayıcıları AVIF'i render edemiyor — önizleme boş çıkar.
+    // opengraph-image.tsx marka kartını PNG olarak üretiyor.
   };
 }
 
@@ -223,7 +226,7 @@ export default async function VenuePage({ params }: PageProps) {
               </span>
             )}
           </div>
-          <h1 className="mt-4 font-display text-3xl font-semibold leading-tight text-ink sm:text-5xl">
+          <h1 className="mt-4 font-display text-fluid-section font-semibold text-ink">
             {venue.name}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-ink-soft">
@@ -339,14 +342,14 @@ export default async function VenuePage({ params }: PageProps) {
                         </td>
                         <td className="px-4 py-4 text-center">
                           {pkg.includes_food ? (
-                            <span className="text-sage">✓</span>
+                            <IconCheck size={15} className="mx-auto text-sage" strokeWidth={2.4} />
                           ) : (
                             <span className="text-mute/50">—</span>
                           )}
                         </td>
                         <td className="px-4 py-4 text-center">
                           {pkg.includes_alcohol ? (
-                            <span className="text-sage">✓</span>
+                            <IconCheck size={15} className="mx-auto text-sage" strokeWidth={2.4} />
                           ) : (
                             <span className="text-mute/50">—</span>
                           )}
@@ -493,8 +496,8 @@ export default async function VenuePage({ params }: PageProps) {
                   key={feature}
                   className="flex items-center gap-3 rounded-2xl border border-hairline bg-parchment px-4 py-3 text-sm text-ink-soft"
                 >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sage/15 text-xs text-sage">
-                    ✓
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sage/15 text-sage">
+                    <IconCheck size={13} strokeWidth={2.6} />
                   </span>
                   {featureLabel(feature)}
                 </div>

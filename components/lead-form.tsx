@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { createLead, type LeadFormState } from "@/app/actions/leads";
 import { CATEGORIES } from "@/lib/constants";
+import { IconArrowUpRight, IconCheck } from "@/components/icons";
 
 const initialState: LeadFormState = { ok: null, message: "" };
 
@@ -22,8 +23,8 @@ export function LeadForm({
   if (state.ok) {
     return (
       <div className="rounded-[calc(1.75rem-0.375rem)] bg-cream p-8 text-center">
-        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sage/15 text-xl">
-          ✓
+        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sage/15 text-sage">
+          <IconCheck size={22} strokeWidth={2.2} />
         </span>
         <p className="mt-4 font-display text-xl font-semibold text-ink">
           İsteğiniz gönderildi
@@ -104,7 +105,7 @@ export function LeadForm({
       >
         {pending ? "Gönderiliyor…" : "Teklif İste"}
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 ease-lux group-hover:translate-x-0.5">
-          ↗
+          <IconArrowUpRight size={15} strokeWidth={2.2} />
         </span>
       </button>
     </form>

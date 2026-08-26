@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/reveal";
+import { IconCheck } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Mekan Sahipleri İçin Fiyatlandırma — Komisyonsuz Abonelik",
@@ -115,13 +116,13 @@ export default function PricingPage() {
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3 text-sm">
                       <span
-                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] ${
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
                           plan.highlight
                             ? "bg-white/15 text-cream"
                             : "bg-sage/15 text-sage"
                         }`}
                       >
-                        ✓
+                        <IconCheck size={11} strokeWidth={3} />
                       </span>
                       {feature}
                     </li>

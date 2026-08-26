@@ -16,7 +16,7 @@ export default function AboutPage() {
         <span className="rounded-full border border-hairline bg-parchment px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-mute">
           Hakkımızda
         </span>
-        <h1 className="mt-5 font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl">
+        <h1 className="mt-5 font-display text-fluid-section font-semibold text-ink">
           Doğru mekan, her şeyin başlangıcı.
         </h1>
       </Reveal>

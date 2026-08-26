@@ -12,6 +12,7 @@ import {
   venueTypeLabel,
   formatPrice,
 } from "@/lib/constants";
+import { IconCheck, IconChevronLeft } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Mekan Önizleme",
@@ -42,8 +43,12 @@ export default async function VenuePreviewPage({ params }: PageProps) {
       {/* Admin denetim çubuğu */}
       <div className="sticky top-24 z-30 mb-8 flex flex-col gap-3 rounded-[1.5rem] border border-gold/30 bg-parchment/90 p-4 shadow-lift backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <Link href="/admin" className="text-sm text-ink-soft hover:text-bordeaux">
-            ← Admin
+          <Link
+            href="/admin"
+            className="inline-flex items-center gap-1 text-sm text-ink-soft hover:text-bordeaux"
+          >
+            <IconChevronLeft size={14} />
+            Admin
           </Link>
           <span className="text-sm text-mute">
             Önizleme —{" "}
@@ -91,7 +96,7 @@ export default async function VenuePreviewPage({ params }: PageProps) {
           </span>
         ))}
       </div>
-      <h1 className="mt-4 font-display text-3xl font-semibold leading-tight text-ink sm:text-4xl">
+      <h1 className="mt-4 font-display text-fluid-title font-semibold text-ink">
         {venue.name}
       </h1>
       <p className="mt-2 text-sm text-ink-soft">
@@ -148,10 +153,18 @@ export default async function VenuePreviewPage({ params }: PageProps) {
                   <tr key={i} className="border-t border-hairline first:border-0">
                     <td className="px-5 py-3.5 font-medium text-ink">{pkg.name}</td>
                     <td className="px-4 py-3.5 text-center">
-                      {pkg.includes_food ? "✓" : "—"}
+                      {pkg.includes_food ? (
+                        <IconCheck size={15} className="mx-auto text-sage" strokeWidth={2.4} />
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className="px-4 py-3.5 text-center">
-                      {pkg.includes_alcohol ? "✓" : "—"}
+                      {pkg.includes_alcohol ? (
+                        <IconCheck size={15} className="mx-auto text-sage" strokeWidth={2.4} />
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className="px-5 py-3.5 text-right font-semibold text-bordeaux">
                       {formatPrice(pkg.price)} ₺

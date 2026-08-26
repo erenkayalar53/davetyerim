@@ -35,6 +35,44 @@ body {
   color: var(--color-cream);
 }
 
+/* Klavye odağı — WCAG 2.4.7.
+   Fare/dokunma ile tıklamada görünmez, yalnızca klavyeyle gezerken çıkar. */
+:focus-visible {
+  outline: 2px solid var(--color-bordeaux);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+
+/* Yuvarlak kapsayıcılarda halka da yuvarlak olsun */
+.rounded-full:focus-visible {
+  border-radius: 9999px;
+}
+
+/* Koyu zemin üstündeki odak (hero, bordo butonlar) kremle çizilir */
+.focus-on-dark:focus-visible {
+  outline-color: var(--color-cream);
+}
+
+/* Akışkan başlık ölçeği — 375px ile 1440px arasında kesintisiz büyür.
+   Basamaklı text-3xl/sm:text-5xl geçişlerindeki sıkışmayı çözer. */
+.text-fluid-hero {
+  font-size: clamp(2.5rem, 1.2rem + 5.6vw, 5.25rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+}
+
+.text-fluid-section {
+  font-size: clamp(1.875rem, 1.1rem + 3.3vw, 3.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+
+.text-fluid-title {
+  font-size: clamp(1.5rem, 1.15rem + 1.5vw, 2.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
 /* Kağıt dokusu — sabit, tıklamayı engellemez */
 .grain::before {
   content: "";
@@ -63,12 +101,60 @@ body {
   filter: blur(0);
 }
 
+/* Yükleme iskeleti — içerik gelene kadar sayfanın iskeletini gösterir.
+   Krem paletin içinde kalan çok yumuşak bir parıltı. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-cream-deep);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 253 248 / 0.7),
+    transparent
+  );
+  animation: shimmer 1.8s var(--ease-lux) infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Hero — çok yavaş Ken Burns. Görsel canlı durur, hareket fark edilmez ama hissedilir. */
+.ken-burns {
+  animation: ken-burns 28s var(--ease-lux) infinite alternate;
+  transform-origin: 55% 45%;
+  will-change: transform;
+}
+
+@keyframes ken-burns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.09);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1;
     transform: none;
     filter: none;
     transition: none;
+  }
+  .skeleton::after,
+  .ken-burns {
+    animation: none;
   }
   *,
   *::before,

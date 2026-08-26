@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CATEGORIES, CITIES, slugifyTr } from "@/lib/constants";
+import { IconArrowUpRight } from "@/components/icons";
 
 export function SearchBox() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export function SearchBox() {
         value={city}
         onChange={(e) => setCity(e.target.value)}
         aria-label="Şehir seçin"
-        className="h-12 flex-1 rounded-full bg-transparent px-5 text-sm text-ink outline-none transition-colors hover:bg-cream-deep/60"
+        className="h-12 flex-1 rounded-full bg-transparent px-5 text-sm text-ink outline-none transition-colors hover:bg-cream-deep/60 focus-visible:bg-cream-deep/60 focus-visible:shadow-[inset_0_0_0_2px_var(--color-bordeaux)]"
       >
         <option value="">Tüm Şehirler</option>
         {CITIES.map((c) => (
@@ -45,7 +46,7 @@ export function SearchBox() {
         value={category}
         onChange={(e) => setCategory(e.target.value)}
         aria-label="Etkinlik türü seçin"
-        className="h-12 flex-1 rounded-full bg-transparent px-5 text-sm text-ink outline-none transition-colors hover:bg-cream-deep/60"
+        className="h-12 flex-1 rounded-full bg-transparent px-5 text-sm text-ink outline-none transition-colors hover:bg-cream-deep/60 focus-visible:bg-cream-deep/60 focus-visible:shadow-[inset_0_0_0_2px_var(--color-bordeaux)]"
       >
         <option value="">Etkinlik Türü</option>
         {CATEGORIES.map((cat) => (
@@ -64,7 +65,7 @@ export function SearchBox() {
         onChange={(e) => setGuests(e.target.value)}
         placeholder="Davetli sayısı"
         aria-label="Davetli sayısı"
-        className="h-12 w-full rounded-full bg-transparent px-5 text-sm text-ink outline-none transition-colors placeholder:text-mute hover:bg-cream-deep/60 sm:w-36"
+        className="h-12 w-full rounded-full bg-transparent px-5 text-sm text-ink outline-none transition-colors placeholder:text-mute hover:bg-cream-deep/60 sm:w-36 focus-visible:bg-cream-deep/60 focus-visible:shadow-[inset_0_0_0_2px_var(--color-bordeaux)]"
       />
 
       <button
@@ -73,7 +74,7 @@ export function SearchBox() {
       >
         Mekan Bul
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 ease-lux group-hover:translate-x-0.5 group-hover:scale-105">
-          ↗
+          <IconArrowUpRight size={15} strokeWidth={2.2} />
         </span>
       </button>
     </form>

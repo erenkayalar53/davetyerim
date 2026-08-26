@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { IconChevronLeft, IconChevronRight } from "@/components/icons";
 
 const MONTH_NAMES = [
   "Ocak",
@@ -125,16 +126,18 @@ export function AvailabilityCalendar({
           type="button"
           onClick={() => setMonthOffset((m) => Math.max(0, m - 1))}
           disabled={monthOffset === 0}
-          className="rounded-full border border-hairline px-3 py-1.5 text-sm text-ink-soft transition-colors duration-300 hover:border-bordeaux/40 hover:text-bordeaux disabled:cursor-not-allowed disabled:opacity-30"
+          className="inline-flex items-center gap-1.5 rounded-full border border-hairline px-3 py-1.5 text-sm text-ink-soft transition-colors duration-300 hover:border-bordeaux/40 hover:text-bordeaux disabled:cursor-not-allowed disabled:opacity-30"
         >
-          ← Önceki
+          <IconChevronLeft size={14} />
+          Önceki
         </button>
         <button
           type="button"
           onClick={() => setMonthOffset((m) => m + 1)}
-          className="rounded-full border border-hairline px-3 py-1.5 text-sm text-ink-soft transition-colors duration-300 hover:border-bordeaux/40 hover:text-bordeaux"
+          className="inline-flex items-center gap-1.5 rounded-full border border-hairline px-3 py-1.5 text-sm text-ink-soft transition-colors duration-300 hover:border-bordeaux/40 hover:text-bordeaux"
         >
-          Sonraki →
+          Sonraki
+          <IconChevronRight size={14} />
         </button>
       </div>
 

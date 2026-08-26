@@ -28,7 +28,7 @@ export function SortSelect() {
       value={searchParams.get("sirala") ?? "one-cikan"}
       onChange={(e) => handleChange(e.target.value)}
       aria-label="Sıralama"
-      className="rounded-full border border-hairline bg-parchment px-4 py-2.5 text-sm text-ink outline-none"
+      className="rounded-full border border-hairline bg-parchment px-4 py-2.5 text-sm text-ink"
     >
       {SORT_OPTIONS.map((opt) => (
         <option key={opt.value} value={opt.value}>

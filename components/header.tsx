@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/app/actions/auth";
+import { IconArrowUpRight } from "@/components/icons";
 import type { UserRole, OwnerStatus } from "@/lib/types";
 
 const NAV_LINKS = [
@@ -78,7 +79,7 @@ export function Header({ isLoggedIn, role, ownerStatus }: HeaderProps) {
                 >
                   Mekanını Ekle
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 ease-lux group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105">
-                    ↗
+                    <IconArrowUpRight size={14} strokeWidth={2.2} />
                   </span>
                 </Link>
               </>

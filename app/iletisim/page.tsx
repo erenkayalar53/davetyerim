@@ -15,7 +15,7 @@ export default function ContactPage() {
         <span className="rounded-full border border-hairline bg-parchment px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-mute">
           İletişim
         </span>
-        <h1 className="mt-5 font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl">
+        <h1 className="mt-5 font-display text-fluid-section font-semibold text-ink">
           Bize ulaşın
         </h1>
         <p className="mt-4 max-w-xl leading-relaxed text-ink-soft">

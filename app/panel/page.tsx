@@ -15,6 +15,7 @@ import {
   venueTypeLabel,
   formatPrice,
 } from "@/lib/constants";
+import { IconEye, IconHeartFilled } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Mekan Paneli",
@@ -73,7 +74,7 @@ export default async function PanelPage({ searchParams }: PageProps) {
           <span className="rounded-full border border-hairline bg-parchment px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-mute">
             Mekan Sahibi Paneli
           </span>
-          <h1 className="mt-4 font-display text-3xl font-semibold text-ink sm:text-4xl">
+          <h1 className="mt-4 font-display text-fluid-title font-semibold text-ink">
             Hoş geldiniz{session.profile.full_name ? `, ${session.profile.full_name}` : ""}
           </h1>
         </div>
@@ -198,11 +199,13 @@ export default async function PanelPage({ searchParams }: PageProps) {
                       {formatPrice(venue.price_max)} ₺/kişi
                     </p>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-cream-deep/70 px-3 py-1 text-xs text-ink-soft">
-                        👁 {venue.view_count} görüntülenme
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-cream-deep/70 px-3 py-1 text-xs text-ink-soft">
+                        <IconEye size={13} strokeWidth={1.8} />
+                        {venue.view_count} görüntülenme
                       </span>
-                      <span className="rounded-full bg-cream-deep/70 px-3 py-1 text-xs text-ink-soft">
-                        ♥ {favoriteCounts[venue.id] ?? 0} favori
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-cream-deep/70 px-3 py-1 text-xs text-ink-soft">
+                        <IconHeartFilled size={12} className="text-bordeaux" />
+                        {favoriteCounts[venue.id] ?? 0} favori
                       </span>
                     </div>
                   </div>

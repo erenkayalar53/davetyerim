@@ -5,6 +5,9 @@ import { SearchBox } from "@/components/search-box";
 import { VenueCard } from "@/components/venue-card";
 import { getFeaturedVenues, getCityCounts, getFavoriteVenueIds } from "@/lib/data";
 import { CATEGORIES } from "@/lib/constants";
+import { IconArrowUpRight } from "@/components/icons";
+import { DARK_BLUR } from "@/lib/image-placeholder";
+import { HeroParallax } from "@/components/hero-parallax";
 
 const CATEGORY_IMAGES: Record<string, string> = {
   dugun:
@@ -33,14 +36,18 @@ export default async function HomePage() {
     <>
       {/* ---------- HERO ---------- */}
       <section className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-4 pb-24 pt-32">
-        <Image
-          src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=2400&q=80"
-          alt="Zarif bir davet mekanında düğün hazırlığı"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
+        <HeroParallax>
+          <Image
+            src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=2400&q=80"
+            alt="Zarif bir davet mekanında düğün hazırlığı"
+            fill
+            priority
+            sizes="100vw"
+            placeholder="blur"
+            blurDataURL={DARK_BLUR}
+            className="object-cover ken-burns"
+          />
+        </HeroParallax>
         <div className="absolute inset-0 bg-gradient-to-b from-ink/60 via-ink/40 to-cream" />
 
         <div className="relative z-10 flex w-full max-w-4xl flex-col items-center text-center">
@@ -125,7 +132,7 @@ export default async function HomePage() {
           <span className="rounded-full border border-hairline bg-parchment px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-mute">
             Etkinlik Türleri
           </span>
-          <h2 className="mt-5 max-w-2xl font-display text-3xl font-semibold leading-tight text-ink sm:text-5xl">
+          <h2 className="mt-5 max-w-2xl font-display text-fluid-section font-semibold text-ink">
             Her davetin kendine göre bir sahnesi var
           </h2>
         </Reveal>
@@ -153,6 +160,8 @@ export default async function HomePage() {
                     alt={`${cat.label} mekanları`}
                     fill
                     sizes="(max-width: 768px) 50vw, 25vw"
+                    placeholder="blur"
+                    blurDataURL={DARK_BLUR}
                     className="object-cover transition-transform duration-1000 ease-lux group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent" />
@@ -178,7 +187,7 @@ export default async function HomePage() {
               <span className="rounded-full border border-hairline bg-cream px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-mute">
                 Seçki
               </span>
-              <h2 className="mt-5 font-display text-3xl font-semibold leading-tight text-ink sm:text-5xl">
+              <h2 className="mt-5 font-display text-fluid-section font-semibold text-ink">
                 Öne çıkan mekanlar
               </h2>
             </div>
@@ -187,8 +196,8 @@ export default async function HomePage() {
               className="group inline-flex w-max items-center gap-2 rounded-full border border-hairline bg-cream py-2.5 pl-5 pr-2 text-sm font-medium text-ink transition-all duration-500 ease-lux hover:border-bordeaux/40 hover:text-bordeaux"
             >
               Tümünü Gör
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blush transition-transform duration-500 ease-lux group-hover:translate-x-0.5">
-                ↗
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blush text-bordeaux transition-transform duration-500 ease-lux group-hover:translate-x-0.5">
+                <IconArrowUpRight size={14} strokeWidth={2.2} />
               </span>
             </Link>
           </Reveal>
@@ -209,7 +218,7 @@ export default async function HomePage() {
           <span className="rounded-full border border-hairline bg-parchment px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-mute">
             Keşfet
           </span>
-          <h2 className="mt-5 font-display text-3xl font-semibold leading-tight text-ink sm:text-5xl">
+          <h2 className="mt-5 font-display text-fluid-section font-semibold text-ink">
             Şehrine göre mekan bul
           </h2>
         </Reveal>
@@ -240,7 +249,7 @@ export default async function HomePage() {
             <span className="rounded-full border border-hairline bg-parchment px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-mute">
               Nasıl Çalışır
             </span>
-            <h2 className="mx-auto mt-5 max-w-2xl font-display text-3xl font-semibold leading-tight text-ink sm:text-5xl">
+            <h2 className="mx-auto mt-5 max-w-2xl font-display text-fluid-section font-semibold text-ink">
               Üç adımda mekanını ayarla
             </h2>
           </Reveal>
@@ -293,6 +302,8 @@ export default async function HomePage() {
                 alt="Akşam davetinde ışıklandırılmış davet alanı"
                 fill
                 sizes="100vw"
+                placeholder="blur"
+                blurDataURL={DARK_BLUR}
                 className="object-cover opacity-40"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-ink/40" />
@@ -300,7 +311,7 @@ export default async function HomePage() {
                 <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-cream">
                   Mekan Sahipleri İçin
                 </span>
-                <h2 className="mt-6 font-display text-3xl font-semibold leading-tight text-white sm:text-4xl">
+                <h2 className="mt-6 font-display text-fluid-title font-semibold text-white">
                   Mekanını binlerce çifte ulaştır
                 </h2>
                 <p className="mt-4 text-base leading-relaxed text-white/80">
@@ -315,7 +326,7 @@ export default async function HomePage() {
                   >
                     Mekanını Ücretsiz Ekle
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink/10 transition-transform duration-500 ease-lux group-hover:translate-x-0.5">
-                      ↗
+                      <IconArrowUpRight size={15} strokeWidth={2.2} />
                     </span>
                   </Link>
                   <Link

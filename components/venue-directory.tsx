@@ -59,7 +59,7 @@ export async function VenueDirectory({
           <span className="rounded-full border border-hairline bg-parchment px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-mute">
             {total} mekan bulundu
           </span>
-          <h1 className="mt-4 font-display text-3xl font-semibold leading-tight text-ink sm:text-5xl">
+          <h1 className="mt-4 font-display text-fluid-section font-semibold text-ink">
             {title}
           </h1>
         </div>

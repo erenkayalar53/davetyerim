@@ -11,6 +11,7 @@ import {
   PRICE_RANGES,
   slugifyTr,
 } from "@/lib/constants";
+import { IconChevronDown } from "@/components/icons";
 
 function FilterGroup({
   title,
@@ -222,7 +223,7 @@ export function Filters({ citySlug }: { citySlug?: string }) {
         <span
           className={`transition-transform duration-500 ease-lux ${mobileOpen ? "rotate-180" : ""}`}
         >
-          ▾
+          <IconChevronDown size={15} />
         </span>
       </button>
       <div

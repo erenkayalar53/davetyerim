@@ -12,6 +12,12 @@ import {
 import { approveOwner, rejectOwner } from "@/app/actions/owner";
 import { venueTypeLabel, formatPrice } from "@/lib/constants";
 import type { Venue, VenuePhoto, Profile } from "@/lib/types";
+import {
+  IconArrowUpRight,
+  IconCheck,
+  IconDocument,
+  IconStarFilled,
+} from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Admin Paneli",
@@ -75,7 +81,7 @@ export default async function AdminPage() {
       <span className="rounded-full border border-hairline bg-parchment px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-mute">
         Yönetim
       </span>
-      <h1 className="mt-4 font-display text-3xl font-semibold text-ink sm:text-4xl">
+      <h1 className="mt-4 font-display text-fluid-title font-semibold text-ink">
         Admin Paneli
       </h1>
 
@@ -138,9 +144,10 @@ export default async function AdminPage() {
                         href={docLinks[app.id].tax}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="rounded-full border border-sage/40 bg-sage/10 px-3 py-1 text-xs font-medium text-sage"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-sage/40 bg-sage/10 px-3 py-1 text-xs font-medium text-sage"
                       >
-                        📄 Vergi Levhası
+                        <IconDocument size={13} />
+                        Vergi Levhası
                       </a>
                     ) : (
                       <span className="rounded-full border border-hairline px-3 py-1 text-xs text-mute">
@@ -152,9 +159,10 @@ export default async function AdminPage() {
                         href={docLinks[app.id].license}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="rounded-full border border-sage/40 bg-sage/10 px-3 py-1 text-xs font-medium text-sage"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-sage/40 bg-sage/10 px-3 py-1 text-xs font-medium text-sage"
                       >
-                        📄 İşyeri Ruhsatı
+                        <IconDocument size={13} />
+                        İşyeri Ruhsatı
                       </a>
                     ) : (
                       <span className="rounded-full border border-hairline px-3 py-1 text-xs text-mute">
@@ -289,9 +297,10 @@ export default async function AdminPage() {
                     {venue.status === "approved" && (
                       <Link
                         href={`/mekan/${venue.slug}`}
-                        className="ml-2 text-xs text-bordeaux hover:underline"
+                        className="ml-2 inline-flex items-center gap-1 text-xs text-bordeaux hover:underline"
                       >
-                        gör ↗
+                        gör
+                        <IconArrowUpRight size={11} />
                       </Link>
                     )}
                   </td>
@@ -330,7 +339,14 @@ export default async function AdminPage() {
                             : "border border-hairline text-mute hover:text-ink"
                         }`}
                       >
-                        {venue.plan === "premium" ? "Premium ✓" : "Free"}
+                        {venue.plan === "premium" ? (
+                          <span className="inline-flex items-center gap-1">
+                            Premium
+                            <IconCheck size={11} strokeWidth={3} />
+                          </span>
+                        ) : (
+                          "Free"
+                        )}
                       </button>
                     </form>
                   </td>
@@ -351,7 +367,14 @@ export default async function AdminPage() {
                             : "border border-hairline text-mute hover:text-ink"
                         }`}
                       >
-                        {venue.featured ? "Vitrinde ★" : "Vitrine Al"}
+                        {venue.featured ? (
+                          <span className="inline-flex items-center gap-1">
+                            Vitrinde
+                            <IconStarFilled size={11} />
+                          </span>
+                        ) : (
+                          "Vitrine Al"
+                        )}
                       </button>
                     </form>
                   </td>
