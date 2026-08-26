@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/auth-form";
+import { AuthFormSkeleton } from "@/components/skeleton";
 import { getSessionProfile } from "@/lib/auth";
 
 export const metadata: Metadata = {
@@ -14,7 +16,9 @@ export default async function RegisterPage() {
 
   return (
     <div className="mx-auto flex min-h-[100dvh] max-w-md flex-col justify-center px-4 py-32">
-      <AuthForm mode="kayit" />
+      <Suspense fallback={<AuthFormSkeleton />}>
+        <AuthForm mode="kayit" />
+      </Suspense>
     </div>
   );
 }

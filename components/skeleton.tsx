@@ -55,3 +55,19 @@ export function FiltersSkeleton() {
     </div>
   );
 }
+
+/** Giriş / kayıt formu iskeleti — AuthForm Suspense sınırı için. */
+export function AuthFormSkeleton() {
+  return (
+    <div className="rounded-[1.75rem] border border-hairline bg-parchment p-8 shadow-float">
+      <Skeleton className="h-8 w-40" />
+      <Skeleton className="mt-3 h-4 w-56 max-w-full" />
+      <div className="mt-8 flex flex-col gap-3">
+        <Skeleton className="h-12 w-full rounded-2xl" />
+        <Skeleton className="h-12 w-full rounded-2xl" />
+      </div>
+      <Skeleton className="mt-6 h-12 w-full rounded-full" />
+      <Skeleton className="mx-auto mt-6 h-3.5 w-48" />
+    </div>
+  );
+}
