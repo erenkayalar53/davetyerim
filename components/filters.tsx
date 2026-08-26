@@ -60,6 +60,10 @@ export function Filters({ citySlug }: { citySlug?: string }) {
   const [, startTransition] = useTransition();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const activeCategories = searchParams.getAll("kategori");
+  const activeTypes = searchParams.getAll("tip");
+  const activeCapacity = searchParams.getAll("kapasite");
+  const activePrice = searchParams.getAll("fiyat");
   const activeFeatures = searchParams.getAll("ozellik");
 
   function navigate(params: URLSearchParams, nextPath?: string) {
@@ -71,21 +75,15 @@ export function Filters({ citySlug }: { citySlug?: string }) {
     });
   }
 
-  function toggleParam(key: string, value: string) {
+  // Aynı grup içinde birden fazla seçenek seçilebilir (OR mantığı)
+  function toggleMulti(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
-    if (params.get(key) === value) params.delete(key);
-    else params.set(key, value);
-    navigate(params);
-  }
-
-  function toggleFeature(value: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    const current = params.getAll("ozellik");
-    params.delete("ozellik");
+    const current = params.getAll(key);
+    params.delete(key);
     const next = current.includes(value)
-      ? current.filter((f) => f !== value)
+      ? current.filter((v) => v !== value)
       : [...current, value];
-    next.forEach((f) => params.append("ozellik", f));
+    next.forEach((v) => params.append(key, v));
     navigate(params);
   }
 
@@ -101,10 +99,12 @@ export function Filters({ citySlug }: { citySlug?: string }) {
   }
 
   const activeCount =
-    ["kategori", "tip", "kapasite", "fiyat", "kisi"].filter((k) =>
-      searchParams.has(k)
-    ).length +
+    activeCategories.length +
+    activeTypes.length +
+    activeCapacity.length +
+    activePrice.length +
     activeFeatures.length +
+    (searchParams.has("kisi") ? 1 : 0) +
     (citySlug ? 1 : 0);
 
   const body = (
@@ -143,8 +143,8 @@ export function Filters({ citySlug }: { citySlug?: string }) {
           <FilterOption
             key={cat.slug}
             label={cat.label}
-            active={searchParams.get("kategori") === cat.slug}
-            onClick={() => toggleParam("kategori", cat.slug)}
+            active={activeCategories.includes(cat.slug)}
+            onClick={() => toggleMulti("kategori", cat.slug)}
           />
         ))}
       </FilterGroup>
@@ -154,8 +154,8 @@ export function Filters({ citySlug }: { citySlug?: string }) {
           <FilterOption
             key={type.slug}
             label={type.label}
-            active={searchParams.get("tip") === type.slug}
-            onClick={() => toggleParam("tip", type.slug)}
+            active={activeTypes.includes(type.slug)}
+            onClick={() => toggleMulti("tip", type.slug)}
           />
         ))}
       </FilterGroup>
@@ -167,8 +167,8 @@ export function Filters({ citySlug }: { citySlug?: string }) {
             <FilterOption
               key={value}
               label={range.label}
-              active={searchParams.get("kapasite") === value}
-              onClick={() => toggleParam("kapasite", value)}
+              active={activeCapacity.includes(value)}
+              onClick={() => toggleMulti("kapasite", value)}
             />
           );
         })}
@@ -181,8 +181,8 @@ export function Filters({ citySlug }: { citySlug?: string }) {
             <FilterOption
               key={value}
               label={range.label}
-              active={searchParams.get("fiyat") === value}
-              onClick={() => toggleParam("fiyat", value)}
+              active={activePrice.includes(value)}
+              onClick={() => toggleMulti("fiyat", value)}
             />
           );
         })}
@@ -198,7 +198,7 @@ export function Filters({ citySlug }: { citySlug?: string }) {
               <input
                 type="checkbox"
                 checked={activeFeatures.includes(feature.slug)}
-                onChange={() => toggleFeature(feature.slug)}
+                onChange={() => toggleMulti("ozellik", feature.slug)}
                 className="h-4 w-4 accent-[#7e2a3a]"
               />
               {feature.label}

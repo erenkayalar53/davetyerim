@@ -23,6 +23,10 @@ const BENEFITS = [
     title: "Performansınızı görün",
     text: "Mekanınızın kaç kez görüntülendiğini ve kaç kişi tarafından favorilendiğini takip edin.",
   },
+  {
+    title: "Güven rozetiyle öne çıkın",
+    text: "Türkiye'deki mekan platformlarının çoğunda belge kontrolü yapılmaz. “Doğrulanmış İşletme” rozetiniz, çiftlerin gözünde sizi diğer ilanlardan ayırır.",
+  },
 ];
 
 export default async function BecomeOwnerPage() {
@@ -73,7 +77,7 @@ export default async function BecomeOwnerPage() {
         </Reveal>
       ) : (
         <>
-          <div className="mt-12 grid gap-4 sm:grid-cols-3">
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {BENEFITS.map((benefit, i) => (
               <Reveal key={benefit.title} delay={i * 100}>
                 <div className="h-full rounded-[1.5rem] border border-hairline bg-parchment p-6">
@@ -96,7 +100,10 @@ export default async function BecomeOwnerPage() {
               <p className="mt-2 text-sm text-ink-soft">
                 Ziyaretçilerin güvenini kazanmak ve “Doğrulanmış İşletme”
                 rozetini almak için aşağıdaki belgeleri başvuruda yükleyin.
-                Belgeleriniz gizli tutulur; yalnızca doğrulama ekibimiz görür.
+                Türkiye'deki mekan platformlarının çoğunda bu kontrol
+                yapılmadığı için rozet, sizi rakiplerinizden ayıran somut bir
+                fark yaratır. Belgeleriniz gizli tutulur; yalnızca doğrulama
+                ekibimiz görür.
               </p>
               <ul className="mt-5 flex flex-col gap-3">
                 {[

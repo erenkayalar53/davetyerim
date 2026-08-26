@@ -53,12 +53,9 @@ export const FEATURE_GROUPS = [
     title: "İkram & Menü",
     features: [
       { slug: "yemekli", label: "Yemekli Servis" },
-      { slug: "kokteyl-bufe", label: "Kokteyl / Açık Büfe" },
-      { slug: "fix-menu", label: "Fix Menü" },
-      { slug: "limitsiz-icecek", label: "Limitsiz İçecek" },
+      { slug: "kokteyl-bufe", label: "Kokteyl" },
       { slug: "alkol-servisi", label: "Alkol Servisi" },
-      { slug: "pasta-ikrami", label: "Pasta İkramı" },
-      { slug: "sadece-kiralama", label: "Sadece Kiralama" },
+      { slug: "disaridan-organizasyon", label: "Dışarıdan Organizasyon" },
     ],
   },
   {
@@ -70,14 +67,13 @@ export const FEATURE_GROUPS = [
       { slug: "led-ekran", label: "LED Ekran" },
       { slug: "havai-fisek", label: "Havai Fişek İzni" },
       { slug: "surpriz-gosteri", label: "Sürpriz Gösteri" },
-      { slug: "jenerator", label: "Jeneratör" },
     ],
   },
   {
     title: "Konfor",
     features: [
       { slug: "klima", label: "Klima" },
-      { slug: "gelin-odasi", label: "Gelin Hazırlık Odası" },
+      { slug: "gelin-odasi", label: "Gelin Odası" },
       { slug: "damat-odasi", label: "Damat Odası" },
       { slug: "nikah-alani", label: "Nikah Alanı" },
       { slug: "otopark", label: "Otopark" },
@@ -95,7 +91,6 @@ export const FEATURE_GROUPS = [
       { slug: "foto-video", label: "Fotoğraf & Video" },
       { slug: "organizasyon", label: "Organizasyon Danışmanı" },
       { slug: "servis-elemani", label: "Servis Elemanları" },
-      { slug: "nikah-sekeri", label: "Nikah Şekeri" },
     ],
   },
 ] as const;

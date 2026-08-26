@@ -8,10 +8,11 @@ import { categoryLabel, SITE_URL } from "@/lib/constants";
 
 export function directoryTitle(
   citySlug?: string,
-  category?: string
+  categories?: string[]
 ): string {
   const cityName = citySlug ? cityFromSlug(citySlug) : undefined;
-  const catLabel = category ? categoryLabel(category) : undefined;
+  const catLabel =
+    categories?.length === 1 ? categoryLabel(categories[0]) : undefined;
   if (cityName && catLabel) return `${cityName} ${catLabel} Mekanları`;
   if (cityName) return `${cityName} Davet Mekanları`;
   if (catLabel) return `${catLabel} Mekanları`;
@@ -30,7 +31,7 @@ export async function VenueDirectory({
     getVenues(filters),
     getFavoriteVenueIds(),
   ]);
-  const title = directoryTitle(citySlug, filters.category);
+  const title = directoryTitle(citySlug, filters.categories);
   const basePath = citySlug ? `/mekanlar/${citySlug}` : "/mekanlar";
 
   const itemListJsonLd = {

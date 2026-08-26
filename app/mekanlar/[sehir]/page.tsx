@@ -23,7 +23,7 @@ export async function generateMetadata({
   const city = cityFromSlug(sehir);
   if (!city) return {};
   const filters = parseFilters(sp, sehir);
-  const title = directoryTitle(sehir, filters.category);
+  const title = directoryTitle(sehir, filters.categories);
   return {
     title: `${title} ve Fiyatları`,
     description: `${city} bölgesindeki düğün, nişan ve davet mekanlarını keşfedin. Kişi başı fiyatları karşılaştırın, kapasiteye göre filtreleyin, ücretsiz teklif alın.`,

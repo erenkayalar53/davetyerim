@@ -6,15 +6,10 @@ function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function parseRange(value?: string): { min?: number; max?: number } {
-  if (!value) return {};
-  const [minStr, maxStr] = value.split("-");
-  const min = Number(minStr);
-  const max = Number(maxStr);
-  return {
-    min: Number.isFinite(min) ? min : undefined,
-    max: Number.isFinite(max) ? max : undefined,
-  };
+function asList(value: string | string[] | undefined): string[] | undefined {
+  if (!value) return undefined;
+  const list = Array.isArray(value) ? value : [value];
+  return list.length > 0 ? list : undefined;
 }
 
 const SORT_MAP: Record<string, VenueFilters["sort"]> = {
@@ -32,11 +27,11 @@ export function parseFilters(
 
   if (citySlug) filters.city = citySlug;
 
-  const category = first(sp.kategori);
-  if (category) filters.category = category;
+  const categories = asList(sp.kategori);
+  if (categories) filters.categories = categories;
 
-  const venueType = first(sp.tip);
-  if (venueType) filters.venueType = venueType;
+  const venueTypes = asList(sp.tip);
+  if (venueTypes) filters.venueTypes = venueTypes;
 
   const guests = Number(first(sp.kisi));
   if (Number.isFinite(guests) && guests > 0) {
@@ -44,18 +39,14 @@ export function parseFilters(
     filters.capacityMax = guests;
   }
 
-  const capacity = parseRange(first(sp.kapasite));
-  if (capacity.min !== undefined) filters.capacityMin = capacity.min;
-  if (capacity.max !== undefined) filters.capacityMax = capacity.max;
+  const capacityRanges = asList(sp.kapasite);
+  if (capacityRanges) filters.capacityRanges = capacityRanges;
 
-  const price = parseRange(first(sp.fiyat));
-  if (price.min !== undefined) filters.priceMin = price.min;
-  if (price.max !== undefined) filters.priceMax = price.max;
+  const priceRanges = asList(sp.fiyat);
+  if (priceRanges) filters.priceRanges = priceRanges;
 
-  const features = sp.ozellik;
-  if (features) {
-    filters.features = Array.isArray(features) ? features : [features];
-  }
+  const features = asList(sp.ozellik);
+  if (features) filters.features = features;
 
   filters.sort = SORT_MAP[first(sp.sirala) ?? ""] ?? "featured";
 

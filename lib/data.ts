@@ -79,22 +79,47 @@ function sortVenues(venues: Venue[], sort: VenueFilters["sort"]): Venue[] {
   }
 }
 
+function parseRangeStr(value: string): { min: number; max: number } {
+  const [minStr, maxStr] = value.split("-");
+  return { min: Number(minStr), max: Number(maxStr) };
+}
+
+// Seçilen aralıklardan en az biriyle çakışıyorsa true döner (OR mantığı)
+function matchesAnyRange(
+  ranges: string[] | undefined,
+  itemMin: number,
+  itemMax: number
+): boolean {
+  if (!ranges?.length) return true;
+  return ranges.some((r) => {
+    const { min, max } = parseRangeStr(r);
+    return itemMax >= min && itemMin <= max;
+  });
+}
+
 function applyFilters(venues: Venue[], f: VenueFilters): Venue[] {
   return venues.filter((v) => {
     if (f.city && slugifyTr(v.city) !== slugifyTr(f.city)) return false;
-    if (f.category && !v.categories.includes(f.category)) return false;
     if (
-      f.venueType &&
-      !v.venue_types.includes(f.venueType) &&
-      v.venue_type !== f.venueType
+      f.categories?.length &&
+      !f.categories.some((c) => v.categories.includes(c))
+    )
+      return false;
+    if (
+      f.venueTypes?.length &&
+      !f.venueTypes.some(
+        (t) => v.venue_types.includes(t) || v.venue_type === t
+      )
     )
       return false;
     if (f.capacityMin !== undefined && v.capacity_max < f.capacityMin)
       return false;
     if (f.capacityMax !== undefined && v.capacity_min > f.capacityMax)
       return false;
-    if (f.priceMin !== undefined && v.price_max < f.priceMin) return false;
-    if (f.priceMax !== undefined && v.price_min > f.priceMax) return false;
+    if (!matchesAnyRange(f.capacityRanges, v.capacity_min, v.capacity_max))
+      return false;
+    if (!matchesAnyRange(f.priceRanges, v.price_min, v.price_max))
+      return false;
     if (f.features?.length) {
       if (!f.features.every((feat) => v.features.includes(feat))) return false;
     }
@@ -131,18 +156,32 @@ export async function getVenues(
 
   const cityName = filters.city ? cityFromSlug(slugifyTr(filters.city)) : null;
   if (cityName) query = query.eq("city", cityName);
-  if (filters.category)
-    query = query.contains("categories", [filters.category]);
-  if (filters.venueType)
-    query = query.contains("venue_types", [filters.venueType]);
+  if (filters.categories?.length)
+    query = query.overlaps("categories", filters.categories);
+  if (filters.venueTypes?.length)
+    query = query.overlaps("venue_types", filters.venueTypes);
   if (filters.capacityMin !== undefined)
     query = query.gte("capacity_max", filters.capacityMin);
   if (filters.capacityMax !== undefined)
     query = query.lte("capacity_min", filters.capacityMax);
-  if (filters.priceMin !== undefined)
-    query = query.gte("price_max", filters.priceMin);
-  if (filters.priceMax !== undefined)
-    query = query.lte("price_min", filters.priceMax);
+  if (filters.capacityRanges?.length) {
+    const orExpr = filters.capacityRanges
+      .map((r) => {
+        const { min, max } = parseRangeStr(r);
+        return `and(capacity_max.gte.${min},capacity_min.lte.${max})`;
+      })
+      .join(",");
+    query = query.or(orExpr);
+  }
+  if (filters.priceRanges?.length) {
+    const orExpr = filters.priceRanges
+      .map((r) => {
+        const { min, max } = parseRangeStr(r);
+        return `and(price_max.gte.${min},price_min.lte.${max})`;
+      })
+      .join(",");
+    query = query.or(orExpr);
+  }
   if (filters.features?.length)
     query = query.contains("features", filters.features);
 
@@ -284,6 +323,23 @@ export async function getVenueReviews(
     .eq("status", "approved")
     .order("created_at", { ascending: false });
   return (data as import("./types").Review[]) ?? [];
+}
+
+// Bugünden itibaren mekan sahibinin dolu işaretlediği tarihler (YYYY-MM-DD)
+export async function getVenueUnavailableDates(
+  venueId: string
+): Promise<string[]> {
+  if (!isSupabaseConfigured()) return [];
+  if (venueId.startsWith("mock-")) return [];
+  const supabase = await createClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const { data } = await supabase
+    .from("venue_unavailable_dates")
+    .select("date")
+    .eq("venue_id", venueId)
+    .gte("date", today)
+    .order("date", { ascending: true });
+  return (data ?? []).map((d) => d.date as string);
 }
 
 // Görüntülenme sayacını artır (RPC — anon dahil güvenli)

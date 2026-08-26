@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 const REASONS = [
   {
     title: "Doğrulanmış işletmeler",
-    text: "Vergi levhası ve işyeri ruhsatı incelenen mekanlara “Doğrulanmış” rozeti veriyoruz. Dolandırıcılık riskini en aza indiriyoruz.",
+    text: "Türkiye'deki mekan platformlarının çoğunda böyle bir kontrol yok. Biz vergi levhası ve işyeri ruhsatını inceleyip onaylanan mekanlara “Doğrulanmış” rozeti veriyoruz — dolandırıcılık riskine karşı gerçek bir güvence.",
   },
   {
     title: "Şeffaf kişi başı fiyat",
@@ -36,7 +36,7 @@ const COUPLE_FAQ: QA[] = [
   },
   {
     q: "“Doğrulanmış İşletme” rozeti ne anlama geliyor?",
-    a: "Bu rozeti taşıyan mekanların vergi levhası ve işyeri açma/çalışma ruhsatı gibi belgeleri ekibimizce incelenmiştir. Gerçek, kayıtlı ve yasal olarak işletilen mekanlar olduklarını gösterir.",
+    a: "Bu rozeti taşıyan mekanların vergi levhası ve işyeri açma/çalışma ruhsatı gibi belgeleri ekibimizce incelenmiştir. Türkiye'deki mekan platformlarının çoğunda belge bazlı bir kontrol yapılmaz; biz bunu ziyaretçilerimize güven vermek için önemli bir adım olarak görüyoruz. Rozetli mekanlar gerçek, kayıtlı ve yasal olarak işletilen mekanlardır.",
   },
   {
     q: "Kişi başı fiyatlar kesin mi?",

@@ -12,11 +12,13 @@ import { Stars } from "@/components/stars";
 import { Accordion } from "@/components/accordion";
 import { ReviewsSection } from "@/components/reviews-section";
 import { VenueTabs, type VenueTab } from "@/components/venue-tabs";
+import { AvailabilityCalendar } from "@/components/availability-calendar";
 import {
   getVenueBySlug,
   getSimilarVenues,
   getFavoriteVenueIds,
   getVenueReviews,
+  getVenueUnavailableDates,
   recordVenueView,
 } from "@/lib/data";
 import { getSessionProfile } from "@/lib/auth";
@@ -54,12 +56,14 @@ export default async function VenuePage({ params }: PageProps) {
   if (!venue) notFound();
 
   await recordVenueView(venue.id);
-  const [similar, favoriteIds, reviews, session] = await Promise.all([
-    getSimilarVenues(venue),
-    getFavoriteVenueIds(),
-    getVenueReviews(venue.id),
-    getSessionProfile(),
-  ]);
+  const [similar, favoriteIds, reviews, unavailableDates, session] =
+    await Promise.all([
+      getSimilarVenues(venue),
+      getFavoriteVenueIds(),
+      getVenueReviews(venue.id),
+      getVenueUnavailableDates(venue.id),
+      getSessionProfile(),
+    ]);
 
   const venueTypes = venue.venue_types?.length
     ? venue.venue_types
@@ -154,6 +158,7 @@ export default async function VenuePage({ params }: PageProps) {
       ? [{ id: "fiyatlar", label: "Fiyatlar" }]
       : []),
     ...(venue.campaign ? [{ id: "kampanya", label: "Kampanya" }] : []),
+    { id: "musaitlik", label: "Müsaitlik" },
     { id: "kapasite", label: "Kapasite" },
     { id: "ozellikler", label: "Özellikler" },
     ...(venue.faqs.length > 0 ? [{ id: "sss", label: "S.S.S." }] : []),
@@ -406,6 +411,20 @@ export default async function VenuePage({ params }: PageProps) {
               </div>
             </Reveal>
           )}
+
+          {/* Müsaitlik */}
+          <Reveal className="mt-12 scroll-mt-32" id="musaitlik">
+            <h2 className="font-display text-2xl font-semibold text-ink">
+              Müsaitlik Takvimi
+            </h2>
+            <p className="mt-2 text-sm text-mute">
+              Mekan sahibi tarafından güncellenir. Kesin müsaitlik için tarih
+              belirterek ücretsiz teklif isteyin.
+            </p>
+            <div className="mt-4">
+              <AvailabilityCalendar unavailableDates={unavailableDates} />
+            </div>
+          </Reveal>
 
           {/* Kapasite */}
           <Reveal className="mt-12 scroll-mt-32" id="kapasite">

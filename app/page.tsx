@@ -88,6 +88,37 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ---------- GÜVEN ŞERİDİ ---------- */}
+      <section className="mx-auto max-w-6xl px-4 pt-16 sm:pt-20">
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[
+            {
+              title: "Belge Kontrollü İşletmeler",
+              text: "Türkiye'deki mekan platformlarının çoğunda böyle bir kontrol yok. Vergi levhası ve ruhsatı incelenen mekanlara “Doğrulanmış” rozeti veriyoruz.",
+            },
+            {
+              title: "Şeffaf Fiyatlandırma",
+              text: "Gizli paket ya da sürpriz ücret yok; kişi başı fiyatları ve mekan sahibi planlarımızı açıkça paylaşıyoruz.",
+            },
+            {
+              title: "Komisyonsuz Model",
+              text: "Rezervasyonunuzdan kesinti almayız. Mekan sahipleri kazandığı her işi tamamen kendine saklar.",
+            },
+          ].map((item, i) => (
+            <Reveal key={item.title} delay={i * 80}>
+              <div className="h-full rounded-[1.5rem] border border-hairline bg-parchment p-6 shadow-float">
+                <p className="font-display text-lg font-semibold text-ink">
+                  {item.title}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                  {item.text}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
       {/* ---------- KATEGORİLER ---------- */}
       <section className="mx-auto max-w-6xl px-4 py-24 sm:py-32">
         <Reveal>

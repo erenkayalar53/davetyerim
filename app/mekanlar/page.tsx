@@ -11,7 +11,7 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const sp = await searchParams;
   const filters = parseFilters(sp);
-  const title = directoryTitle(undefined, filters.category);
+  const title = directoryTitle(undefined, filters.categories);
   return {
     title: `${title} ve Fiyatları`,
     description: `${title} — kapasite, kişi başı fiyat ve mekan özelliklerine göre karşılaştırın, ücretsiz teklif alın.`,

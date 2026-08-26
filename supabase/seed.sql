@@ -34,7 +34,7 @@ with venue as (
     ('Vadi Kır Bahçesi', 'vadi-kir-bahcesi', 'Polonezköy ormanlarının içinde, şehirden 25 dakika uzaklıkta huzurlu bir kır düğünü mekanı. Göl kenarı nikah alanı, ahşap pergolalar ve profesyonel mutfak ekibiyle kır düğünü hayali kuranlar için tasarlandı.', 'İstanbul',
      'Beykoz', 'Polonezköy Yolu 4. km, Beykoz/İstanbul', '0216 555 02 02', '0533 555 02 02',
      100, 450, 1800, 3500,
-     'kir-bahcesi', array['dugun', 'nisan', 'kina']::text[], array['acik-alan', 'havuz-basi', 'yemekli', 'gelin-odasi', 'otopark', 'cocuk-oyun-alani', 'jenerator']::text[],
+     'kir-bahcesi', array['dugun', 'nisan', 'kina']::text[], array['acik-alan', 'havuz-basi', 'yemekli', 'gelin-odasi', 'otopark', 'cocuk-oyun-alani']::text[],
      'approved', 'premium', true)
   on conflict (slug) do nothing
   returning id
@@ -120,7 +120,7 @@ with venue as (
     ('Ankara Anadolu Davet Sarayı', 'ankara-anadolu-davet-sarayi', 'Başkentin merkezinde 1000 kişi kapasiteli görkemli davet salonu. LED ekranlar, profesyonel ışık sistemi ve zengin menü alternatifleriyle büyük düğünler ve kurumsal galalar için ideal.', 'Ankara',
      'Çankaya', 'Atatürk Bulvarı No:88, Çankaya/Ankara', '0312 555 06 06', '0534 555 06 06',
      300, 1000, 900, 2200,
-     'dugun-salonu', array['dugun', 'nisan', 'kina', 'sunnet', 'kurumsal']::text[], array['kapali-alan', 'yemekli', 'gelin-odasi', 'sahne-ses-isik', 'otopark', 'engelli-erisimi', 'jenerator']::text[],
+     'dugun-salonu', array['dugun', 'nisan', 'kina', 'sunnet', 'kurumsal']::text[], array['kapali-alan', 'yemekli', 'gelin-odasi', 'sahne-ses-isik', 'otopark', 'engelli-erisimi']::text[],
      'approved', 'premium', true)
   on conflict (slug) do nothing
   returning id
@@ -142,7 +142,7 @@ with venue as (
     ('Gölbaşı Bahçe Düğün', 'golbasi-bahce-dugun', 'Mogan Gölü kıyısında gün batımı manzaralı kır düğünü bahçesi. Göl kenarında nikah masası, geniş yeşil alan ve mangal-barbekü seçenekleriyle samimi ve doğal bir düğün atmosferi.', 'Ankara',
      'Gölbaşı', 'Mogan Gölü Kıyısı No:5, Gölbaşı/Ankara', '0312 555 07 07', '0535 555 07 07',
      100, 400, 750, 1600,
-     'kir-bahcesi', array['dugun', 'nisan', 'kina', 'sunnet', 'dogum-gunu']::text[], array['acik-alan', 'yemekli', 'otopark', 'cocuk-oyun-alani', 'havai-fisek', 'jenerator']::text[],
+     'kir-bahcesi', array['dugun', 'nisan', 'kina', 'sunnet', 'dogum-gunu']::text[], array['acik-alan', 'yemekli', 'otopark', 'cocuk-oyun-alani', 'havai-fisek']::text[],
      'approved', 'free', false)
   on conflict (slug) do nothing
   returning id
@@ -185,7 +185,7 @@ with venue as (
     ('Alsancak Tarihi Havagazı Fabrikası', 'alsancak-tarihi-havagazi-fabrikasi', 'Endüstriyel mirası koruyan taş duvarlı tarihi yapı; modern ışıklandırma ve geniş avlusuyla alternatif düğünler, sergiler ve kurumsal etkinlikler için karakter dolu bir mekan.', 'İzmir',
      'Konak', 'Liman Cad. No:1, Konak/İzmir', '0232 555 09 09', '0537 555 09 09',
      100, 600, 1200, 2800,
-     'tarihi-mekan', array['dugun', 'davet', 'kurumsal']::text[], array['acik-alan', 'kapali-alan', 'sadece-kiralama', 'sahne-ses-isik', 'otopark', 'engelli-erisimi']::text[],
+     'tarihi-mekan', array['dugun', 'davet', 'kurumsal']::text[], array['acik-alan', 'kapali-alan', 'disaridan-organizasyon', 'sahne-ses-isik', 'otopark', 'engelli-erisimi']::text[],
      'approved', 'free', false)
   on conflict (slug) do nothing
   returning id
@@ -291,7 +291,7 @@ with venue as (
     ('Nilüfer Grand Salon', 'nilufer-grand-salon', 'Modern mimarisi ve 800 kişilik kapasitesiyle Bursa''nın en büyük düğün salonlarından. Zengin menü seçenekleri, LED sahne ve ücretsiz gelin arabası süsleme hizmeti sunar.', 'Bursa',
      'Nilüfer', 'İzmir Yolu 8. km, Nilüfer/Bursa', '0224 555 14 14', '0532 555 14 14',
      250, 800, 700, 1500,
-     'dugun-salonu', array['dugun', 'kina', 'sunnet', 'nisan']::text[], array['kapali-alan', 'yemekli', 'gelin-odasi', 'sahne-ses-isik', 'otopark', 'engelli-erisimi', 'jenerator']::text[],
+     'dugun-salonu', array['dugun', 'kina', 'sunnet', 'nisan']::text[], array['kapali-alan', 'yemekli', 'gelin-odasi', 'sahne-ses-isik', 'otopark', 'engelli-erisimi']::text[],
      'approved', 'free', false)
   on conflict (slug) do nothing
   returning id
@@ -355,7 +355,7 @@ with venue as (
     ('Adana Şato Davet', 'adana-sato-davet', 'Şato mimarisiyle dikkat çeken, havuzlu ve geniş bahçeli davet kompleksi. Görkemli giriş merdiveni, havuz başı kokteyl alanı ve 900 kişilik kapasitesiyle bölgenin en iddialı mekanı.', 'Adana',
      'Sarıçam', 'Kozan Yolu 12. km, Sarıçam/Adana', '0322 555 17 17', '0535 555 17 17',
      200, 900, 800, 1800,
-     'davet-evi', array['dugun', 'nisan', 'kina', 'sunnet']::text[], array['havuz-basi', 'acik-alan', 'kapali-alan', 'yemekli', 'gelin-odasi', 'sahne-ses-isik', 'otopark', 'havai-fisek', 'jenerator']::text[],
+     'davet-evi', array['dugun', 'nisan', 'kina', 'sunnet']::text[], array['havuz-basi', 'acik-alan', 'kapali-alan', 'yemekli', 'gelin-odasi', 'sahne-ses-isik', 'otopark', 'havai-fisek']::text[],
      'approved', 'free', false)
   on conflict (slug) do nothing
   returning id

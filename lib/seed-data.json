@@ -39,7 +39,7 @@
     "price_max": 3500,
     "venue_type": "kir-bahcesi",
     "categories": ["dugun", "nisan", "kina"],
-    "features": ["acik-alan", "havuz-basi", "yemekli", "gelin-odasi", "otopark", "cocuk-oyun-alani", "jenerator"],
+    "features": ["acik-alan", "havuz-basi", "yemekli", "gelin-odasi", "otopark", "cocuk-oyun-alani"],
     "plan": "premium",
     "featured": true,
     "photos": [
@@ -133,7 +133,7 @@
     "price_max": 2200,
     "venue_type": "dugun-salonu",
     "categories": ["dugun", "nisan", "kina", "sunnet", "kurumsal"],
-    "features": ["kapali-alan", "yemekli", "gelin-odasi", "sahne-ses-isik", "otopark", "engelli-erisimi", "jenerator"],
+    "features": ["kapali-alan", "yemekli", "gelin-odasi", "sahne-ses-isik", "otopark", "engelli-erisimi"],
     "plan": "premium",
     "featured": true,
     "photos": [
@@ -157,7 +157,7 @@
     "price_max": 1600,
     "venue_type": "kir-bahcesi",
     "categories": ["dugun", "nisan", "kina", "sunnet", "dogum-gunu"],
-    "features": ["acik-alan", "yemekli", "otopark", "cocuk-oyun-alani", "havai-fisek", "jenerator"],
+    "features": ["acik-alan", "yemekli", "otopark", "cocuk-oyun-alani", "havai-fisek"],
     "plan": "free",
     "featured": false,
     "photos": [
@@ -204,7 +204,7 @@
     "price_max": 2800,
     "venue_type": "tarihi-mekan",
     "categories": ["dugun", "davet", "kurumsal"],
-    "features": ["acik-alan", "kapali-alan", "sadece-kiralama", "sahne-ses-isik", "otopark", "engelli-erisimi"],
+    "features": ["acik-alan", "kapali-alan", "disaridan-organizasyon", "sahne-ses-isik", "otopark", "engelli-erisimi"],
     "plan": "free",
     "featured": false,
     "photos": [
@@ -320,7 +320,7 @@
     "price_max": 1500,
     "venue_type": "dugun-salonu",
     "categories": ["dugun", "kina", "sunnet", "nisan"],
-    "features": ["kapali-alan", "yemekli", "gelin-odasi", "sahne-ses-isik", "otopark", "engelli-erisimi", "jenerator"],
+    "features": ["kapali-alan", "yemekli", "gelin-odasi", "sahne-ses-isik", "otopark", "engelli-erisimi"],
     "plan": "free",
     "featured": false,
     "photos": [
@@ -390,7 +390,7 @@
     "price_max": 1800,
     "venue_type": "davet-evi",
     "categories": ["dugun", "nisan", "kina", "sunnet"],
-    "features": ["havuz-basi", "acik-alan", "kapali-alan", "yemekli", "gelin-odasi", "sahne-ses-isik", "otopark", "havai-fisek", "jenerator"],
+    "features": ["havuz-basi", "acik-alan", "kapali-alan", "yemekli", "gelin-odasi", "sahne-ses-isik", "otopark", "havai-fisek"],
     "plan": "free",
     "featured": false,
     "photos": [

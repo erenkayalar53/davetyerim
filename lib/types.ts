@@ -121,12 +121,12 @@ export interface Profile {
 
 export interface VenueFilters {
   city?: string;
-  category?: string;
-  venueType?: string;
+  categories?: string[];
+  venueTypes?: string[];
   capacityMin?: number;
   capacityMax?: number;
-  priceMin?: number;
-  priceMax?: number;
+  capacityRanges?: string[];
+  priceRanges?: string[];
   features?: string[];
   sort?: "featured" | "price-asc" | "price-desc" | "newest";
   page?: number;
