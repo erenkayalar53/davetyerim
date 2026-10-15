@@ -12,6 +12,7 @@ import {
   slugifyTr,
 } from "@/lib/constants";
 import { IconChevronDown } from "@/components/icons";
+import { todayISO } from "@/lib/event-date";
 
 function FilterGroup({
   title,
@@ -61,6 +62,9 @@ export function Filters({ citySlug }: { citySlug?: string }) {
   const [, startTransition] = useTransition();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const activeDate = searchParams.get("tarih") ?? "";
+  const today = todayISO();
+
   const activeCategories = searchParams.getAll("kategori");
   const activeTypes = searchParams.getAll("tip");
   const activeCapacity = searchParams.getAll("kapasite");
@@ -88,6 +92,13 @@ export function Filters({ citySlug }: { citySlug?: string }) {
     navigate(params);
   }
 
+  function setDate(value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set("tarih", value);
+    else params.delete("tarih");
+    navigate(params);
+  }
+
   function selectCity(slug: string) {
     const params = new URLSearchParams(searchParams.toString());
     navigate(params, slug ? `/mekanlar/${slug}` : "/mekanlar");
@@ -105,6 +116,7 @@ export function Filters({ citySlug }: { citySlug?: string }) {
     activeCapacity.length +
     activePrice.length +
     activeFeatures.length +
+    (activeDate ? 1 : 0) +
     (searchParams.has("kisi") ? 1 : 0) +
     (citySlug ? 1 : 0);
 
@@ -137,6 +149,31 @@ export function Filters({ citySlug }: { citySlug?: string }) {
             </option>
           ))}
         </select>
+      </FilterGroup>
+
+      <FilterGroup title="Tarih">
+        <input
+          type="date"
+          value={activeDate}
+          min={today}
+          onChange={(e) => setDate(e.target.value)}
+          aria-label="Etkinlik tarihi filtresi"
+          className={`field ${activeDate ? "" : "text-mute"}`}
+        />
+        {activeDate && (
+          <>
+            <p className="text-xs leading-relaxed text-mute">
+              Bu tarihi dolu olarak işaretlemiş mekanlar listeden çıkarıldı.
+            </p>
+            <button
+              type="button"
+              onClick={() => setDate("")}
+              className="w-max text-xs text-bordeaux underline-offset-2 hover:underline"
+            >
+              Tarihi kaldır
+            </button>
+          </>
+        )}
       </FilterGroup>
 
       <FilterGroup title="Etkinlik Türü">

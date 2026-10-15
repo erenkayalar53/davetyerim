@@ -1,10 +1,43 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/reveal";
 import { SearchBox } from "@/components/search-box";
 import { VenueCard } from "@/components/venue-card";
 import { getFeaturedVenues, getCityCounts, getFavoriteVenueIds } from "@/lib/data";
-import { CATEGORIES } from "@/lib/constants";
+import { CATEGORIES, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/constants";
+
+export const metadata: Metadata = {
+  title: `${SITE_NAME} — Düğün, Nişan ve Davet Mekanları`,
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: "/" },
+};
+
+const ORGANIZATION_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: SITE_NAME,
+  url: SITE_URL,
+  logo: `${SITE_URL}/icon.svg`,
+  description: SITE_DESCRIPTION,
+  areaServed: { "@type": "Country", name: "Türkiye" },
+};
+
+const WEBSITE_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  url: SITE_URL,
+  inLanguage: "tr-TR",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${SITE_URL}/mekanlar?kisi={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
 import { IconArrowUpRight } from "@/components/icons";
 import { DARK_BLUR } from "@/lib/image-placeholder";
 import { HeroParallax } from "@/components/hero-parallax";
@@ -34,6 +67,17 @@ export default async function HomePage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(ORGANIZATION_JSON_LD),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(WEBSITE_JSON_LD) }}
+      />
+
       {/* ---------- HERO ---------- */}
       <section className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-4 pb-24 pt-32">
         <HeroParallax>
@@ -309,31 +353,31 @@ export default async function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-ink/40" />
               <div className="relative z-10 max-w-xl">
                 <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-cream">
-                  Mekan Sahipleri İçin
+                  Firmalar İçin
                 </span>
                 <h2 className="mt-6 font-display text-fluid-title font-semibold text-white">
                   Mekanını binlerce çifte ulaştır
                 </h2>
                 <p className="mt-4 text-base leading-relaxed text-white/80">
-                  Komisyon yok, sürpriz kesinti yok. Mekanını ücretsiz ekle,
-                  gelen teklif isteklerini gör; dilersen aylık abonelikle
-                  vitrine çık.
+                  Komisyon yok, sürpriz kesinti yok. Mekanını ekle, gelen
+                  teklif isteklerini panelinden takip et. Mekanına uygun
+                  çözümü birlikte belirleyelim.
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3">
                   <Link
-                    href="/panel/mekan-ekle"
+                    href="/firmalar-icin"
                     className="group flex items-center gap-2 rounded-full bg-cream py-2.5 pl-6 pr-2 text-sm font-medium text-ink transition-all duration-500 ease-lux hover:bg-white active:scale-[0.98]"
                   >
-                    Mekanını Ücretsiz Ekle
+                    Firmalar İçin
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink/10 transition-transform duration-500 ease-lux group-hover:translate-x-0.5">
                       <IconArrowUpRight size={15} strokeWidth={2.2} />
                     </span>
                   </Link>
                   <Link
-                    href="/fiyatlandirma"
+                    href="/iletisim"
                     className="flex items-center rounded-full border border-white/25 px-6 py-2.5 text-sm font-medium text-cream transition-colors duration-500 ease-lux hover:bg-white/10"
                   >
-                    Planları İncele
+                    Bize Ulaşın
                   </Link>
                 </div>
               </div>

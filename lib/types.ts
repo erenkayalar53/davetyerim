@@ -80,6 +80,10 @@ export interface Venue {
   rating_avg: number;
   rating_count: number;
   view_count: number;
+  /** Teklif taleplerine ortalama yanıt süresi (dakika). Ölçüm yoksa null. */
+  avg_response_minutes: number | null;
+  /** Ortalamanın kaç yanıta dayandığı — az örnekte rozet gösterilmez. */
+  response_sample_count: number;
   status: VenueStatus;
   plan: VenuePlan;
   featured: boolean;
@@ -88,9 +92,15 @@ export interface Venue {
   photos: VenuePhoto[];
 }
 
+export type LeadKind = "quote" | "callback";
+export type LeadStatus = "new" | "responded" | "closed";
+
 export interface Lead {
   id: string;
   venue_id: string;
+  user_id: string | null;
+  batch_id: string | null;
+  kind: LeadKind;
   name: string;
   phone: string;
   email: string;
@@ -98,6 +108,10 @@ export interface Lead {
   guest_count: number | null;
   category: string;
   message: string;
+  status: LeadStatus;
+  responded_at: string | null;
+  quoted_price: number | null;
+  owner_note: string;
   created_at: string;
 }
 
@@ -121,6 +135,11 @@ export interface Profile {
 
 export interface VenueFilters {
   city?: string;
+  /**
+   * Etkinlik tarihi (YYYY-MM-DD). Mekan sahibinin dolu işaretlediği tarihler
+   * üzerinden filtreler — o tarihi kapatmış mekanlar listeden çıkar.
+   */
+  date?: string;
   categories?: string[];
   venueTypes?: string[];
   capacityMin?: number;

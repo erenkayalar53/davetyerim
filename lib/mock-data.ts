@@ -62,6 +62,8 @@ export const MOCK_VENUES: Venue[] = (seedData as SeedVenue[]).map(
     rating_avg: 4.4 + ((i % 6) * 0.1),
     rating_count: 12 + ((i * 7) % 40),
     view_count: 0,
+    avg_response_minutes: null,
+    response_sample_count: 0,
     verified: v.plan === "premium",
     status: "approved",
     plan: v.plan as VenuePlan,

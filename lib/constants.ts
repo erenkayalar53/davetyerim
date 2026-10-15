@@ -99,7 +99,11 @@ export const FEATURES: { slug: string; label: string }[] = FEATURE_GROUPS.flatMa
   (g) => g.features.map((f) => ({ slug: f.slug as string, label: f.label as string }))
 );
 
-export const CITIES = [
+/**
+ * Envanterin yoğunlaştığı iller. Ana sayfa ve footer gibi "öne çıkarma"
+ * alanlarında 81 ilin tamamını dökmek yerine bunlar gösterilir.
+ */
+export const FEATURED_CITIES = [
   "İstanbul",
   "Ankara",
   "İzmir",
@@ -112,6 +116,31 @@ export const CITIES = [
   "Mersin",
   "Eskişehir",
   "Trabzon",
+] as const;
+
+/**
+ * Türkiye'nin 81 ili — dizin sayfaları, filtreler ve mekan sahibi formları
+ * bu listeden beslenir. Alfabetik sıradadır; öne çıkarma sırası için
+ * FEATURED_CITIES kullanın.
+ *
+ * Henüz mekanı olmayan illerin sayfaları da açılır ama noindex'tir ve
+ * mekan sahibi davetiyle gösterilir (bkz. app/mekanlar/[sehir]/page.tsx).
+ */
+export const CITIES = [
+  "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Aksaray", "Amasya",
+  "Ankara", "Antalya", "Ardahan", "Artvin", "Aydın", "Balıkesir",
+  "Bartın", "Batman", "Bayburt", "Bilecik", "Bingöl", "Bitlis",
+  "Bolu", "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum",
+  "Denizli", "Diyarbakır", "Düzce", "Edirne", "Elazığ", "Erzincan",
+  "Erzurum", "Eskişehir", "Gaziantep", "Giresun", "Gümüşhane", "Hakkari",
+  "Hatay", "Iğdır", "Isparta", "İstanbul", "İzmir", "Kahramanmaraş",
+  "Karabük", "Karaman", "Kars", "Kastamonu", "Kayseri", "Kırıkkale",
+  "Kırklareli", "Kırşehir", "Kilis", "Kocaeli", "Konya", "Kütahya",
+  "Malatya", "Manisa", "Mardin", "Mersin", "Muğla", "Muş",
+  "Nevşehir", "Niğde", "Ordu", "Osmaniye", "Rize", "Sakarya",
+  "Samsun", "Siirt", "Sinop", "Sivas", "Şanlıurfa", "Şırnak",
+  "Tekirdağ", "Tokat", "Trabzon", "Tunceli", "Uşak", "Van",
+  "Yalova", "Yozgat", "Zonguldak",
 ] as const;
 
 export const CAPACITY_RANGES = [
@@ -173,6 +202,24 @@ export function slugifyTr(text: string): string {
 }
 
 export const SITE_NAME = "Davet Yerim";
-export const SITE_URL = "https://davetyerim.com";
+
+/**
+ * Sitenin mutlak adresi. Canonical, sitemap, robots, JSON-LD ve OG görselleri
+ * buradan besleniyor — yanlış olursa hepsi ölü adrese işaret eder.
+ *
+ * Sıra: açıkça verilen NEXT_PUBLIC_SITE_URL → Vercel'in otomatik verdiği
+ * deploy adresi (önizleme dağıtımları için) → canlı domain.
+ */
+function resolveSiteUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
+  if (explicit) return explicit.trim().replace(/\/+$/, "");
+
+  const vercel = process.env.NEXT_PUBLIC_VERCEL_URL;
+  if (vercel) return `https://${vercel.trim().replace(/\/+$/, "")}`;
+
+  return "https://davetyerim.com";
+}
+
+export const SITE_URL = resolveSiteUrl();
 export const SITE_DESCRIPTION =
   "Düğün, nişan, kına, sünnet ve kurumsal etkinlikler için Türkiye'nin dört bir yanından yüzlerce mekanı keşfedin. Kişi başı fiyatları karşılaştırın, ücretsiz teklif alın.";

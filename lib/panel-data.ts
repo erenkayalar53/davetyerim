@@ -82,11 +82,24 @@ export async function getMyLeads(): Promise<LeadWithVenue[]> {
   const venueIds = (venues ?? []).map((v) => v.id);
   if (venueIds.length === 0) return [];
 
-  const { data } = await supabase
+  // Yanıtlanmamışlar üstte: sahibi panele girdiğinde ilk göreceği şey
+  // bekleyen talep olmalı, aylar önceki kapanmış bir kayıt değil.
+  const { data, error } = await supabase
+    .from("leads")
+    .select("*, venue:venues(name)")
+    .in("venue_id", venueIds)
+    .order("responded_at", { ascending: true, nullsFirst: true })
+    .order("created_at", { ascending: false });
+
+  if (!error) return (data as LeadWithVenue[]) ?? [];
+
+  // migration-v9 henüz uygulanmadıysa responded_at kolonu yoktur. Panel,
+  // sırf yeni bir sütun eksik diye tamamen boş açılmamalı.
+  const { data: fallback } = await supabase
     .from("leads")
     .select("*, venue:venues(name)")
     .in("venue_id", venueIds)
     .order("created_at", { ascending: false });
 
-  return (data as LeadWithVenue[]) ?? [];
+  return (fallback as LeadWithVenue[]) ?? [];
 }

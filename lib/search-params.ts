@@ -1,4 +1,5 @@
 import type { VenueFilters } from "./types";
+import { parseEventDate } from "./event-date";
 
 export type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -10,6 +11,36 @@ function asList(value: string | string[] | undefined): string[] | undefined {
   if (!value) return undefined;
   const list = Array.isArray(value) ? value : [value];
   return list.length > 0 ? list : undefined;
+}
+
+const FILTER_KEYS = [
+  "kategori",
+  "tip",
+  "tarih",
+  "kisi",
+  "kapasite",
+  "fiyat",
+  "ozellik",
+  "sirala",
+  "sayfa",
+] as const;
+
+/**
+ * Filtre veya sayfalama uygulanmış liste görünümü mü?
+ *
+ * Bu görünümler kanonik olarak temiz yola işaret ediyor — yani kendilerini
+ * kanonik ilan etmiyorlar ve zaten sıralanamazlar. İndekse girmelerine izin
+ * vermek ince/yinelenen sayfa üretir. `follow` açık kalır ki mekan
+ * bağlantıları taranmaya devam etsin.
+ */
+export function isFilteredView(sp: SearchParams): boolean {
+  return FILTER_KEYS.some((key) => {
+    const value = sp[key];
+    if (value === undefined) return false;
+    if (key === "sayfa") return Number(first(value)) > 1;
+    if (Array.isArray(value)) return value.length > 0;
+    return value !== "";
+  });
 }
 
 const SORT_MAP: Record<string, VenueFilters["sort"]> = {
@@ -32,6 +63,9 @@ export function parseFilters(
 
   const venueTypes = asList(sp.tip);
   if (venueTypes) filters.venueTypes = venueTypes;
+
+  const date = parseEventDate(first(sp.tarih));
+  if (date) filters.date = date;
 
   const guests = Number(first(sp.kisi));
   if (Number.isFinite(guests) && guests > 0) {

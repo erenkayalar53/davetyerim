@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { VenueDirectory, directoryTitle } from "@/components/venue-directory";
-import { parseFilters, type SearchParams } from "@/lib/search-params";
+import {
+  isFilteredView,
+  parseFilters,
+  type SearchParams,
+} from "@/lib/search-params";
 
 interface PageProps {
   searchParams: Promise<SearchParams>;
@@ -16,6 +20,7 @@ export async function generateMetadata({
     title: `${title} ve Fiyatları`,
     description: `${title} — kapasite, kişi başı fiyat ve mekan özelliklerine göre karşılaştırın, ücretsiz teklif alın.`,
     alternates: { canonical: "/mekanlar" },
+    ...(isFilteredView(sp) ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

@@ -52,6 +52,10 @@ function normalize(row: VenueRow): Venue {
     rating_avg: Number(row.rating_avg ?? 0),
     rating_count: row.rating_count ?? 0,
     view_count: row.view_count ?? 0,
+    // migration-v9 uygulanmadan önce bu kolonlar gelmez; rozet sessizce
+    // gizlenir, sayfa çökmez.
+    avg_response_minutes: row.avg_response_minutes ?? null,
+    response_sample_count: row.response_sample_count ?? 0,
     verified: row.verified ?? false,
     photos: (row.photos ?? []).sort((a, b) => a.sort_order - b.sort_order),
   };
@@ -97,6 +101,12 @@ function matchesAnyRange(
   });
 }
 
+/**
+ * Demo modunda (Supabase yok) müsaitlik kaydı hiç bulunmaz, o yüzden burada
+ * f.date bilerek göz ardı edilir: elimizde veri olmadan mekan elemek, uydurma
+ * müsaitlik bilgisi göstermek olurdu. Tarih filtresi yalnızca gerçek
+ * venue_unavailable_dates kayıtları üzerinden çalışır (bkz. getVenues).
+ */
 function applyFilters(venues: Venue[], f: VenueFilters): Venue[] {
   return venues.filter((v) => {
     if (f.city && slugifyTr(v.city) !== slugifyTr(f.city)) return false;
@@ -129,6 +139,48 @@ function applyFilters(venues: Venue[], f: VenueFilters): Venue[] {
 
 export function cityFromSlug(slug: string): string | undefined {
   return CITIES.find((c) => slugifyTr(c) === slug);
+}
+
+/**
+ * Bir ildeki yayınlanmış mekan sayısı.
+ *
+ * 81 ilin tamamı için sayfa açtığımızdan, envanteri olmayan ilin sayfası
+ * arama motoruna ince içerik olarak gitmemeli. Bu sayım hem noindex kararını
+ * hem de sitemap'e girip girmeyeceğini belirler.
+ */
+export async function getCityVenueCount(city: string): Promise<number> {
+  if (!isSupabaseConfigured()) {
+    return MOCK_VENUES.filter((v) => v.city === city).length;
+  }
+
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("venues")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "approved")
+    .eq("city", city);
+
+  return count ?? 0;
+}
+
+/**
+ * Verilen tarihte dolu işaretlenmiş mekanların ID'leri.
+ *
+ * Model "dolu tarih" kaydı tutuyor: kaydı olmayan mekan o tarihi kapatmamış
+ * demektir — kesin müsait olduğu anlamına gelmez. Dolayısıyla tarih filtresi
+ * "müsait olanları göster" değil, "sahibinin kapattığı mekanları çıkar"
+ * şeklinde çalışır. Tek bir güne bakıldığı için liste küçük kalır.
+ */
+async function getBlockedVenueIds(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  date: string
+): Promise<string[]> {
+  const { data } = await supabase
+    .from("venue_unavailable_dates")
+    .select("venue_id")
+    .eq("date", date);
+
+  return [...new Set((data ?? []).map((row) => row.venue_id as string))];
 }
 
 export async function getVenues(
@@ -184,6 +236,13 @@ export async function getVenues(
   }
   if (filters.features?.length)
     query = query.contains("features", filters.features);
+
+  if (filters.date) {
+    const blocked = await getBlockedVenueIds(supabase, filters.date);
+    if (blocked.length > 0) {
+      query = query.not("id", "in", `(${blocked.join(",")})`);
+    }
+  }
 
   switch (filters.sort) {
     case "price-asc":
@@ -383,4 +442,55 @@ export async function getFavoriteVenues(): Promise<Venue[]> {
     .map((row) => row.venue)
     .filter((v): v is VenueRow => v !== null && v.status === "approved")
     .map(normalize);
+}
+
+export type QuoteRequest = import("./types").Lead & {
+  venue: {
+    id: string;
+    name: string;
+    slug: string;
+    city: string;
+    district: string;
+    price_min: number;
+    price_max: number;
+    capacity_min: number;
+    capacity_max: number;
+    phone: string;
+    whatsapp: string;
+    avg_response_minutes: number | null;
+    response_sample_count: number;
+    photos: { url: string; is_cover: boolean }[] | null;
+  } | null;
+};
+
+/**
+ * Girişli çiftin gönderdiği teklif talepleri ve mekanların dönüşleri.
+ * /tekliflerim ekranındaki karşılaştırma bu veriyle çalışır.
+ */
+export async function getMyQuoteRequests(): Promise<QuoteRequest[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("leads")
+    .select(
+      `*, venue:venues(
+        id, name, slug, city, district,
+        price_min, price_max, capacity_min, capacity_max,
+        phone, whatsapp, avg_response_minutes, response_sample_count,
+        photos:venue_photos(url, is_cover)
+      )`
+    )
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  // migration-v9 uygulanmadan bu kolonlar yok; sayfa hata yerine boş açılır.
+  if (error) return [];
+
+  return (data as QuoteRequest[]) ?? [];
 }

@@ -5,6 +5,14 @@ import { venueTypeLabel, formatPrice } from "@/lib/constants";
 import { FavoriteButton } from "@/components/favorite-button";
 import { Stars } from "@/components/stars";
 import { VENUE_BLUR } from "@/lib/image-placeholder";
+import { venueHighlights } from "@/lib/venue-highlights";
+import { responseTimeLabel } from "@/lib/response-time";
+import {
+  discountedPrice,
+  hasVisibleDiscount,
+  isCampaignActive,
+  urgencyLabel,
+} from "@/lib/campaign";
 
 export function VenueCard({
   venue,
@@ -15,6 +23,12 @@ export function VenueCard({
 }) {
   const cover = venue.photos.find((p) => p.is_cover) ?? venue.photos[0];
   const types = venue.venue_types?.length ? venue.venue_types : [venue.venue_type];
+
+  const highlights = venueHighlights(venue);
+  const responseTime = responseTimeLabel(venue);
+  const campaign = isCampaignActive(venue.campaign) ? venue.campaign : null;
+  const discounted = hasVisibleDiscount(campaign);
+  const urgency = campaign ? urgencyLabel(campaign) : null;
 
   return (
     <div className="group relative rounded-[1.75rem] border border-hairline bg-parchment p-1.5 shadow-float transition-all duration-700 ease-lux hover:-translate-y-1 hover:shadow-lift">
@@ -36,11 +50,24 @@ export function VenueCard({
               Fotoğraf yakında
             </div>
           )}
-          {venue.plan === "premium" && (
-            <span className="absolute left-3 top-3 rounded-full bg-ink/70 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-cream backdrop-blur-sm">
-              Öne Çıkan
-            </span>
-          )}
+          {/* Sol üstte rozetler dikey yığılır; sağ üst favori butonuna ait. */}
+          <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+            {venue.plan === "premium" && (
+              <span className="rounded-full bg-ink/70 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-cream backdrop-blur-sm">
+                Öne Çıkan
+              </span>
+            )}
+            {discounted && (
+              <span className="rounded-full bg-bordeaux px-3 py-1 text-[11px] font-semibold text-cream shadow-float">
+                %{campaign?.discount_pct} indirim
+              </span>
+            )}
+            {urgency && (
+              <span className="rounded-full bg-parchment/90 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.15em] text-bordeaux backdrop-blur-sm">
+                {urgency}
+              </span>
+            )}
+          </div>
           <span className="absolute bottom-3 right-3 rounded-full bg-parchment/90 px-3 py-1 text-[11px] font-medium text-ink backdrop-blur-sm">
             {venueTypeLabel(types[0])}
             {types.length > 1 ? ` +${types.length - 1}` : ""}
@@ -76,6 +103,38 @@ export function VenueCard({
             )}
           </div>
 
+          {/* Ayırt edici özellikler — kullanıcı karta tıklamadan eleme yapabilsin.
+              Yanıt hızı en önde: teklif isteme kararını doğrudan etkiliyor. */}
+          {(highlights.length > 0 || responseTime) && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {responseTime && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-sage/40 bg-sage/10 px-2.5 py-0.5 text-[11px] font-medium text-sage">
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  >
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 7v5l3 2" />
+                  </svg>
+                  {responseTime}
+                </span>
+              )}
+              {highlights.map((label) => (
+                <span
+                  key={label}
+                  className="rounded-full border border-hairline bg-cream px-2.5 py-0.5 text-[11px] text-ink-soft"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          )}
+
           <div className="mt-4 flex items-end justify-between border-t border-hairline pt-3.5">
             <div className="text-xs text-ink-soft">
               <span className="block text-[10px] uppercase tracking-[0.15em] text-mute">
@@ -87,9 +146,21 @@ export function VenueCard({
               <span className="block text-[10px] uppercase tracking-[0.15em] text-mute">
                 Kişi başı
               </span>
-              <span className="font-display text-base font-semibold text-bordeaux">
-                {formatPrice(venue.price_min)} – {formatPrice(venue.price_max)} ₺
-              </span>
+              {discounted ? (
+                <>
+                  <span className="block text-[11px] text-mute line-through">
+                    {formatPrice(venue.price_min)} – {formatPrice(venue.price_max)} ₺
+                  </span>
+                  <span className="font-display text-base font-semibold text-bordeaux">
+                    {formatPrice(discountedPrice(venue.price_min, campaign))} –{" "}
+                    {formatPrice(discountedPrice(venue.price_max, campaign))} ₺
+                  </span>
+                </>
+              ) : (
+                <span className="font-display text-base font-semibold text-bordeaux">
+                  {formatPrice(venue.price_min)} – {formatPrice(venue.price_max)} ₺
+                </span>
+              )}
             </div>
           </div>
         </div>
