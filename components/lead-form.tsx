@@ -1,20 +1,29 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { createLead, type LeadFormState } from "@/app/actions/leads";
 import { CATEGORIES } from "@/lib/constants";
 import { IconArrowUpRight, IconCheck } from "@/components/icons";
+import { AvailabilityCalendar } from "@/components/availability-calendar";
 
 const initialState: LeadFormState = { ok: null, message: "" };
 
 export function LeadForm({
   venueId,
   venueCategories,
+  unavailableDates = [],
 }: {
   venueId: string;
   venueCategories: string[];
+  /** Mekan sahibinin dolu işaretlediği tarihler (YYYY-MM-DD). */
+  unavailableDates?: string[];
 }) {
   const [state, formAction, pending] = useActionState(createLead, initialState);
+  const [eventDate, setEventDate] = useState("");
+
+  const taken = new Set(unavailableDates);
+  const dateIsTaken = eventDate !== "" && taken.has(eventDate);
+  const today = new Date().toISOString().slice(0, 10);
 
   const categories = CATEGORIES.filter((c) =>
     venueCategories.includes(c.slug)
@@ -64,8 +73,12 @@ export function LeadForm({
         <input
           name="event_date"
           type="date"
+          min={today}
+          value={eventDate}
+          onChange={(e) => setEventDate(e.target.value)}
           aria-label="Etkinlik tarihi"
-          className="field"
+          aria-invalid={dateIsTaken}
+          className={`field ${dateIsTaken ? "border-bordeaux text-bordeaux" : ""}`}
         />
         <input
           name="guest_count"
@@ -73,6 +86,22 @@ export function LeadForm({
           min={1}
           placeholder="Davetli sayısı"
           className="field"
+        />
+      </div>
+
+      {/* Native date input tek tek günü kapatamıyor; dolu tarihlerin hem
+          görünür hem seçilemez olması için takvim buraya da konuldu.
+          Üstteki input hızlı giriş için kalıyor, ikisi aynı state'i yazar. */}
+      <div className="rounded-2xl border border-hairline bg-parchment p-3">
+        <p className="mb-2 text-xs leading-relaxed text-mute">
+          Dolu tarihler takvimde işaretli ve seçilemez.
+        </p>
+        <AvailabilityCalendar
+          unavailableDates={unavailableDates}
+          selectable
+          selectedDate={eventDate || null}
+          onSelect={setEventDate}
+          months={1}
         />
       </div>
 
@@ -92,6 +121,13 @@ export function LeadForm({
         className="field resize-none"
       />
 
+      {dateIsTaken && (
+        <p className="rounded-2xl bg-bordeaux/10 px-4 py-3 text-sm text-bordeaux">
+          Bu tarih mekanda dolu görünüyor. Aşağıdaki takvimden müsait bir
+          tarih seçebilirsiniz.
+        </p>
+      )}
+
       {state.ok === false && (
         <p className="rounded-2xl bg-bordeaux/10 px-4 py-3 text-sm text-bordeaux">
           {state.message}
@@ -100,7 +136,7 @@ export function LeadForm({
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || dateIsTaken}
         className="group mt-1 flex items-center justify-center gap-2 rounded-full bg-bordeaux py-3.5 pl-6 pr-2 text-sm font-medium text-cream transition-all duration-500 ease-lux hover:bg-bordeaux-deep active:scale-[0.98] disabled:opacity-60"
       >
         {pending ? "Gönderiliyor…" : "Teklif İste"}

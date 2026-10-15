@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { VenueCard } from "@/components/venue-card";
+import { BatchQuoteForm } from "@/components/batch-quote-form";
 import { getSessionProfile } from "@/lib/auth";
 import { getFavoriteVenues } from "@/lib/data";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
@@ -45,11 +46,17 @@ export default async function FavoritesPage() {
           </Link>
         </div>
       ) : (
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {venues.map((venue) => (
-            <VenueCard key={venue.id} venue={venue} favorited />
-          ))}
-        </div>
+        <>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {venues.map((venue) => (
+              <VenueCard key={venue.id} venue={venue} favorited />
+            ))}
+          </div>
+
+          <div className="mt-14">
+            <BatchQuoteForm venues={venues} />
+          </div>
+        </>
       )}
     </div>
   );

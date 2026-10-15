@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Gallery } from "@/components/gallery";
 import { LeadForm } from "@/components/lead-form";
+import { CallbackForm } from "@/components/callback-form";
 import { PhoneReveal } from "@/components/phone-reveal";
 import { VenueCard } from "@/components/venue-card";
 import { Reveal } from "@/components/reveal";
@@ -11,7 +12,11 @@ import { RichText } from "@/components/rich-text";
 import { Stars } from "@/components/stars";
 import { Accordion } from "@/components/accordion";
 import { ReviewsSection } from "@/components/reviews-section";
-import { VenueTabs, type VenueTab } from "@/components/venue-tabs";
+import { VenueCtaBar } from "@/components/venue-cta-bar";
+import {
+  VenueStickyBar,
+  type VenueTab,
+} from "@/components/venue-sticky-bar";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
 import {
   getVenueBySlug,
@@ -31,6 +36,9 @@ import {
   SITE_URL,
 } from "@/lib/constants";
 import { IconCheck } from "@/components/icons";
+import { venueFaqs } from "@/lib/venue-faq";
+import { isCampaignActive, urgencyLabel } from "@/lib/campaign";
+import { responseTimeLabel } from "@/lib/response-time";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -79,7 +87,9 @@ export default async function VenuePage({ params }: PageProps) {
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "EventVenue",
+    // Mekan hem etkinlik alanı hem işletme — ikisi birden işaretlenince
+    // yerel arama ve etkinlik sonuçlarının ikisine de aday oluyor.
+    "@type": ["EventVenue", "LocalBusiness"],
     name: venue.name,
     description: venue.description,
     url: `${SITE_URL}/mekan/${venue.slug}`,
@@ -93,13 +103,42 @@ export default async function VenuePage({ params }: PageProps) {
     },
     maximumAttendeeCapacity: venue.capacity_max,
     priceRange: `₺${formatPrice(venue.price_min)} - ₺${formatPrice(venue.price_max)} (kişi başı)`,
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "TRY",
+      lowPrice: venue.price_min,
+      highPrice: venue.price_max,
+      unitText: "kişi başı",
+      ...(venue.menu_packages.length > 0
+        ? { offerCount: venue.menu_packages.length }
+        : {}),
+    },
+    // Puan ve yorumlar YALNIZCA gerçek onaylı yorum varsa basılır.
     ...(venue.rating_count > 0
       ? {
           aggregateRating: {
             "@type": "AggregateRating",
             ratingValue: venue.rating_avg.toFixed(1),
             reviewCount: venue.rating_count,
+            bestRating: 5,
+            worstRating: 1,
           },
+        }
+      : {}),
+    ...(reviews.length > 0
+      ? {
+          review: reviews.slice(0, 10).map((r) => ({
+            "@type": "Review",
+            author: { "@type": "Person", name: r.author_name },
+            datePublished: r.created_at?.slice(0, 10),
+            reviewRating: {
+              "@type": "Rating",
+              ratingValue: r.rating,
+              bestRating: 5,
+              worstRating: 1,
+            },
+            ...(r.comment ? { reviewBody: r.comment } : {}),
+          })),
         }
       : {}),
     ...(venue.plan === "premium" && venue.phone
@@ -133,12 +172,15 @@ export default async function VenuePage({ params }: PageProps) {
     ],
   };
 
+  // Mekan sahibinin girdiği sorular + yapısal veriden üretilenler
+  const faqs = venueFaqs(venue);
+
   const faqJsonLd =
-    venue.faqs.length > 0
+    faqs.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          mainEntity: venue.faqs.map((f) => ({
+          mainEntity: faqs.map((f) => ({
             "@type": "Question",
             name: f.q,
             acceptedAnswer: { "@type": "Answer", text: f.a },
@@ -154,23 +196,37 @@ export default async function VenuePage({ params }: PageProps) {
     (p) => (p.price_weekday ?? 0) !== (p.price_weekend ?? 0)
   );
 
-  // Yapışkan sekmeler — yalnızca var olan bölümler
+  // Süresi dolmuş kampanya hiçbir yerde görünmemeli — sekme de dahil.
+  const activeCampaign = isCampaignActive(venue.campaign) ? venue.campaign : null;
+  const campaignUrgency = activeCampaign ? urgencyLabel(activeCampaign) : null;
+  const responseTime = responseTimeLabel(venue);
+
+  // Yapışkan bar sekmeleri — yalnızca var olan bölümler, sayılarıyla
   const tabs: VenueTab[] = [
+    { id: "fotograflar", label: "Fotoğraflar", count: venue.photos.length },
     { id: "hakkinda", label: "Hakkında" },
     ...(venue.menu_packages.length > 0
-      ? [{ id: "fiyatlar", label: "Fiyatlar" }]
+      ? [
+          {
+            id: "fiyatlar",
+            label: "Fiyatlar",
+            count: venue.menu_packages.length,
+          },
+        ]
       : []),
-    ...(venue.campaign ? [{ id: "kampanya", label: "Kampanya" }] : []),
+    ...(activeCampaign ? [{ id: "kampanya", label: "Kampanya" }] : []),
     { id: "musaitlik", label: "Müsaitlik" },
     { id: "kapasite", label: "Kapasite" },
-    { id: "ozellikler", label: "Özellikler" },
-    ...(venue.faqs.length > 0 ? [{ id: "sss", label: "S.S.S." }] : []),
-    { id: "yorumlar", label: "Yorumlar" },
+    { id: "ozellikler", label: "Özellikler", count: venue.features.length },
+    ...(faqs.length > 0
+      ? [{ id: "sss", label: "S.S.S.", count: faqs.length }]
+      : []),
+    { id: "yorumlar", label: "Yorumlar", count: venue.rating_count },
     { id: "konum", label: "Konum" },
   ];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-24 pt-32 sm:pt-36">
+    <div className="mx-auto max-w-6xl px-4 pb-32 pt-32 sm:pt-36 lg:pb-24">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -257,17 +313,21 @@ export default async function VenuePage({ params }: PageProps) {
         </div>
       </div>
 
+      <VenueStickyBar
+        venueName={venue.name}
+        priceLabel={`${formatPrice(venue.price_min)} – ${formatPrice(venue.price_max)} ₺`}
+        tabs={tabs}
+      />
+
       <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_380px]">
         {/* Sol kolon */}
         <div className="min-w-0">
-          <div id="fotograflar">
+          <div id="fotograflar" className="scroll-mt-32">
             <Gallery photos={venue.photos} venueName={venue.name} />
           </div>
 
-          <VenueTabs tabs={tabs} />
-
           {/* Özet bilgiler */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               {
                 label: "Kapasite",
@@ -377,7 +437,7 @@ export default async function VenuePage({ params }: PageProps) {
           )}
 
           {/* Kampanya */}
-          {venue.campaign && (
+          {activeCampaign && (
             <Reveal className="mt-12 scroll-mt-32" id="kampanya">
               <div className="overflow-hidden rounded-[1.5rem] border border-bordeaux/30 bg-bordeaux p-1.5">
                 <div className="rounded-[calc(1.5rem-0.375rem)] bg-bordeaux px-6 py-6 text-cream">
@@ -385,27 +445,32 @@ export default async function VenuePage({ params }: PageProps) {
                     <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em]">
                       Kampanya
                     </span>
-                    {venue.campaign.discount_pct ? (
+                    {activeCampaign.discount_pct ? (
                       <span className="font-display text-2xl font-semibold text-blush">
-                        %{venue.campaign.discount_pct} indirim
+                        %{activeCampaign.discount_pct} indirim
                       </span>
                     ) : null}
+                    {campaignUrgency && (
+                      <span className="rounded-full bg-cream px-3 py-1 text-[11px] font-semibold text-bordeaux">
+                        {campaignUrgency}
+                      </span>
+                    )}
                   </div>
                   <h3 className="mt-3 font-display text-xl font-semibold">
-                    {venue.campaign.title}
+                    {activeCampaign.title}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-white/85">
-                    {venue.campaign.text}
+                    {activeCampaign.text}
                   </p>
                   <div className="mt-4 flex flex-wrap gap-4 text-xs text-white/70">
-                    {venue.campaign.min_guests ? (
-                      <span>Min. {venue.campaign.min_guests} kişi</span>
+                    {activeCampaign.min_guests ? (
+                      <span>Min. {activeCampaign.min_guests} kişi</span>
                     ) : null}
-                    {venue.campaign.valid_until ? (
+                    {activeCampaign.valid_until ? (
                       <span>
                         Son gün:{" "}
                         {new Date(
-                          venue.campaign.valid_until
+                          activeCampaign.valid_until
                         ).toLocaleDateString("tr-TR")}
                       </span>
                     ) : null}
@@ -506,13 +571,13 @@ export default async function VenuePage({ params }: PageProps) {
           </Reveal>
 
           {/* Mekana özel SSS */}
-          {venue.faqs.length > 0 && (
+          {faqs.length > 0 && (
             <Reveal className="mt-12 scroll-mt-32" id="sss">
               <h2 className="font-display text-2xl font-semibold text-ink">
                 Sıkça Sorulan Sorular
               </h2>
               <div className="mt-4">
-                <Accordion items={venue.faqs} />
+                <Accordion items={faqs} />
               </div>
             </Reveal>
           )}
@@ -550,9 +615,38 @@ export default async function VenuePage({ params }: PageProps) {
         </div>
 
         {/* Sağ kolon — teklif */}
-        <aside className="lg:sticky lg:top-28 lg:h-max">
+        <aside id="teklif" className="scroll-mt-28 lg:sticky lg:top-28 lg:h-max">
+          {responseTime && (
+            <div className="mb-4 flex items-center gap-2 rounded-2xl border border-sage/30 bg-sage/10 px-4 py-3">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                className="shrink-0 text-sage"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
+              </svg>
+              <p className="text-sm font-medium text-sage">
+                Ortalama {responseTime}
+              </p>
+            </div>
+          )}
+
           <div className="rounded-[1.75rem] border border-hairline bg-parchment p-1.5 shadow-lift">
-            <LeadForm venueId={venue.id} venueCategories={venue.categories} />
+            <LeadForm
+              venueId={venue.id}
+              venueCategories={venue.categories}
+              unavailableDates={unavailableDates}
+            />
+          </div>
+
+          <div className="mt-4">
+            <CallbackForm venueId={venue.id} />
           </div>
 
           <div className="mt-4 rounded-[1.75rem] border border-hairline bg-parchment p-5">
@@ -592,6 +686,10 @@ export default async function VenuePage({ params }: PageProps) {
           </div>
         </section>
       )}
+
+      <VenueCtaBar
+        priceLabel={`${formatPrice(venue.price_min)} – ${formatPrice(venue.price_max)} ₺`}
+      />
     </div>
   );
 }

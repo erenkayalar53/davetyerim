@@ -43,6 +43,16 @@ interface AvailabilityCalendarProps {
   editable?: boolean;
   pendingDate?: string | null;
   onToggle?: (date: string, currentlyUnavailable: boolean) => void;
+  /**
+   * Ziyaretçi takvimden tarih seçebilir. Dolu ve geçmiş günler gerçekten
+   * tıklanamaz kalır (disabled) — native date input'ta tek tek gün
+   * kapatılamadığı için teklif formu bu modu kullanıyor.
+   */
+  selectable?: boolean;
+  selectedDate?: string | null;
+  onSelect?: (date: string) => void;
+  /** Yan kolon gibi dar alanlarda tek ay göstermek için. */
+  months?: number;
 }
 
 export function AvailabilityCalendar({
@@ -50,6 +60,10 @@ export function AvailabilityCalendar({
   editable = false,
   pendingDate = null,
   onToggle,
+  selectable = false,
+  selectedDate = null,
+  onSelect,
+  months = 2,
 }: AvailabilityCalendarProps) {
   const [monthOffset, setMonthOffset] = useState(0);
   const unavailableSet = new Set(unavailableDates);
@@ -83,32 +97,50 @@ export function AvailabilityCalendar({
             const isPast = date < today;
             const isUnavailable = unavailableSet.has(iso);
             const isPending = pendingDate === iso;
-            const clickable = editable && !isPast && Boolean(onToggle);
+            const isSelected = selectable && selectedDate === iso;
+            const clickable = editable
+              ? !isPast && Boolean(onToggle)
+              : selectable && !isPast && !isUnavailable && Boolean(onSelect);
 
             return (
               <button
                 key={iso}
                 type="button"
                 disabled={!clickable || isPending}
-                onClick={() => onToggle?.(iso, isUnavailable)}
+                aria-pressed={selectable ? isSelected : undefined}
+                onClick={() =>
+                  editable
+                    ? onToggle?.(iso, isUnavailable)
+                    : onSelect?.(iso)
+                }
                 title={
                   editable
                     ? isUnavailable
                       ? "Müsait yap"
                       : "Dolu olarak işaretle"
                     : isUnavailable
-                      ? "Bu tarih dolu görünüyor"
-                      : "Müsait görünüyor"
+                      ? "Bu tarih dolu — seçilemez"
+                      : selectable
+                        ? "Bu tarihi seç"
+                        : "Müsait görünüyor"
                 }
                 className={`flex h-8 w-full items-center justify-center rounded-lg text-xs transition-colors duration-200 ${
                   isPast
                     ? "text-mute/40"
                     : isUnavailable
-                      ? "bg-bordeaux text-cream"
-                      : "bg-sage/15 text-ink-soft"
-                } ${clickable ? "cursor-pointer hover:opacity-80" : "cursor-default"} ${
-                  isPending ? "opacity-50" : ""
-                }`}
+                      ? `bg-bordeaux text-cream${
+                          selectable ? " line-through decoration-cream/70" : ""
+                        }`
+                      : isSelected
+                        ? "bg-ink font-semibold text-cream"
+                        : "bg-sage/15 text-ink-soft"
+                } ${
+                  clickable
+                    ? "cursor-pointer hover:opacity-80"
+                    : isUnavailable && selectable
+                      ? "cursor-not-allowed"
+                      : "cursor-default"
+                } ${isPending ? "opacity-50" : ""}`}
               >
                 {date.getDate()}
               </button>
@@ -141,17 +173,26 @@ export function AvailabilityCalendar({
         </button>
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {[monthOffset, monthOffset + 1].map(renderMonth)}
+      <div
+        className={`mt-4 grid gap-4 ${months > 1 ? "sm:grid-cols-2" : ""}`}
+      >
+        {Array.from({ length: months }, (_, i) => monthOffset + i).map(
+          renderMonth
+        )}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-4 text-xs text-ink-soft">
+      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-ink-soft">
         <span className="flex items-center gap-2">
           <span className="h-3 w-3 rounded-full bg-sage/15" /> Müsait
         </span>
         <span className="flex items-center gap-2">
           <span className="h-3 w-3 rounded-full bg-bordeaux" /> Dolu
         </span>
+        {selectable && (
+          <span className="flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full bg-ink" /> Seçtiğiniz tarih
+          </span>
+        )}
       </div>
     </div>
   );

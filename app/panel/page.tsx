@@ -15,7 +15,9 @@ import {
   venueTypeLabel,
   formatPrice,
 } from "@/lib/constants";
-import { IconEye, IconHeartFilled } from "@/components/icons";
+import { IconCalendar, IconEye, IconHeartFilled } from "@/components/icons";
+import { LeadRespondForm } from "@/components/lead-respond-form";
+import { formatDuration } from "@/lib/response-time";
 
 export const metadata: Metadata = {
   title: "Mekan Paneli",
@@ -61,6 +63,29 @@ export default async function PanelPage({ searchParams }: PageProps) {
     searchParams,
   ]);
   const favoriteCounts = await getVenueFavoriteCounts(venues.map((v) => v.id));
+  const pendingLeads = leads.filter((l) => !l.responded_at);
+
+  // Mekanların yanıt süreleri örneklem sayısına göre ağırlıklandırılır:
+  // 40 talebe cevap veren mekan ile 3 talebe cevap veren mekan, sahibinin
+  // genel hızını aynı ölçüde temsil etmiyor.
+  const measured = venues.filter(
+    (v) => v.avg_response_minutes !== null && v.response_sample_count > 0
+  );
+  const totalSamples = measured.reduce(
+    (sum, v) => sum + v.response_sample_count,
+    0
+  );
+  const avgResponse =
+    totalSamples > 0
+      ? Math.round(
+          measured.reduce(
+            (sum, v) =>
+              sum + (v.avg_response_minutes ?? 0) * v.response_sample_count,
+            0
+          ) / totalSamples
+        )
+      : null;
+
   const totalViews = venues.reduce((sum, v) => sum + v.view_count, 0);
   const totalFavorites = Object.values(favoriteCounts).reduce(
     (sum, c) => sum + c,
@@ -106,12 +131,16 @@ export default async function PanelPage({ searchParams }: PageProps) {
 
       {/* Özet istatistikler */}
       {venues.length > 0 && (
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {[
             { label: "Mekan", value: venues.length },
             { label: "Toplam Görüntülenme", value: totalViews },
             { label: "Toplam Favori", value: totalFavorites },
-            { label: "Teklif İsteği", value: leads.length },
+            { label: "Bekleyen Talep", value: pendingLeads.length },
+            {
+              label: "Ortalama Yanıt",
+              value: avgResponse === null ? "—" : formatDuration(avgResponse),
+            },
           ].map((stat) => (
             <div
               key={stat.label}
@@ -219,6 +248,13 @@ export default async function PanelPage({ searchParams }: PageProps) {
                       </Link>
                     )}
                     <Link
+                      href={`/panel/mekan/${venue.id}/musaitlik`}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-hairline px-4 py-2 text-sm text-ink-soft transition-colors hover:text-bordeaux"
+                    >
+                      <IconCalendar size={14} strokeWidth={1.8} />
+                      Müsaitlik
+                    </Link>
+                    <Link
                       href={`/panel/mekan/${venue.id}`}
                       className="rounded-full bg-ink px-4 py-2 text-sm text-cream transition-colors hover:bg-ink-soft"
                     >
@@ -254,6 +290,7 @@ export default async function PanelPage({ searchParams }: PageProps) {
                   <th className="px-5 py-4 font-medium">Etkinlik</th>
                   <th className="px-5 py-4 font-medium">Davetli</th>
                   <th className="px-5 py-4 font-medium">Mesaj</th>
+                  <th className="px-5 py-4 font-medium">Yanıt</th>
                 </tr>
               </thead>
               <tbody>
@@ -278,6 +315,9 @@ export default async function PanelPage({ searchParams }: PageProps) {
                     <td className="px-5 py-4">{lead.guest_count ?? "—"}</td>
                     <td className="max-w-48 truncate px-5 py-4 text-ink-soft">
                       {lead.message || "—"}
+                    </td>
+                    <td className="px-5 py-4">
+                      <LeadRespondForm lead={lead} />
                     </td>
                   </tr>
                 ))}
