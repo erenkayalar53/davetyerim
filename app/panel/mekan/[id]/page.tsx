@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
 import { VenueWizard } from "@/components/venue-wizard";
-import { AvailabilityManager } from "@/components/availability-manager";
+import { IconCalendar } from "@/components/icons";
 import { getSessionProfile } from "@/lib/auth";
 import { getVenueForOwner } from "@/lib/panel-data";
 import { getVenueUnavailableDates } from "@/lib/data";
@@ -46,15 +47,19 @@ export default async function EditVenuePage({ params }: PageProps) {
           Müsaitlik Takvimi
         </h2>
         <p className="mt-2 text-sm text-ink-soft">
-          Dolu olan tarihleri işaretleyin; ziyaretçiler bu takvimi mekan
-          sayfanızda görür.
+          Takvim kendi sayfasında yönetiliyor: tarihe tıkladığınız anda
+          kaydedilir, bu formu doldurmanız gerekmez.
+          {unavailableDates.length > 0
+            ? ` Şu an ${unavailableDates.length} tarih dolu işaretli.`
+            : " Şu an dolu işaretli tarih yok."}
         </p>
-        <div className="mt-5">
-          <AvailabilityManager
-            venueId={id}
-            initialUnavailableDates={unavailableDates}
-          />
-        </div>
+        <Link
+          href={`/panel/mekan/${id}/musaitlik`}
+          className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-ink-soft"
+        >
+          <IconCalendar size={15} strokeWidth={1.8} />
+          Takvimi Yönet
+        </Link>
       </div>
     </div>
   );

@@ -93,3 +93,50 @@ export async function rejectOwner(formData: FormData) {
   await supabase.rpc("reject_owner", { p_user: userId });
   revalidatePath("/admin");
 }
+
+/**
+ * Mekan sahibi bir teklif talebini yanıtlar.
+ *
+ * responded_at yalnızca ilk yanıtta yazılır: sonradan fiyat güncellemek
+ * ölçülen yanıt süresini geriye dönük iyileştirmemeli, yoksa rozet
+ * gerçeği değil sahibinin panele en son ne zaman girdiğini gösterir.
+ */
+export async function respondToLead(formData: FormData): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  const rawPrice = String(formData.get("quoted_price") ?? "").replace(",", ".");
+  const price = Number(rawPrice);
+  const note = String(formData.get("owner_note") ?? "").trim().slice(0, 1000);
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  // Talep gerçekten bu sahibin mekanına mı ait? RLS de engelliyor ama
+  // sessiz bir no-op yerine burada erken çıkıyoruz.
+  const { data: lead } = await supabase
+    .from("leads")
+    .select("id, responded_at, venue:venues!inner(owner_id)")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!lead) return;
+
+  await supabase
+    .from("leads")
+    .update({
+      status: "responded",
+      responded_at: lead.responded_at ?? new Date().toISOString(),
+      quoted_price: Number.isFinite(price) && price > 0 ? price : null,
+      owner_note: note,
+    })
+    .eq("id", id);
+
+  revalidatePath("/panel");
+  revalidatePath("/tekliflerim");
+}

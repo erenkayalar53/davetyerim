@@ -36,9 +36,9 @@ export default function AboutPage() {
         </p>
         <p>
           Mekan sahipleri için modelimiz nettir: komisyon almıyoruz.
-          Rezervasyon başına kesinti yok, gizli ücret yok. Mekanlar ücretsiz
-          listelenir; dileyen işletmeler aylık abonelikle vitrine çıkar.
-          Kazandığınız her iş tamamen sizindir.
+          Rezervasyon başına kesinti yok, gizli ücret yok. Kazandığınız her iş
+          tamamen sizindir. Her mekanın ihtiyacı farklı olduğu için hazır paket
+          satmıyoruz; bize ulaşın, birlikte belirleyelim.
         </p>
       </Reveal>
 
@@ -50,10 +50,10 @@ export default function AboutPage() {
           Mekanları Keşfet
         </Link>
         <Link
-          href="/fiyatlandirma"
+          href="/firmalar-icin"
           className="rounded-full border border-hairline bg-parchment px-6 py-3 text-sm font-medium text-ink transition-colors duration-500 ease-lux hover:border-bordeaux/40 hover:text-bordeaux"
         >
-          Mekan Sahipleri İçin
+          Firmalar İçin
         </Link>
       </Reveal>
     </div>

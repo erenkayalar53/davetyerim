@@ -38,7 +38,23 @@ export interface SaveVenueResult {
   message: string;
 }
 
-function validate(input: VenueInput): string | null {
+interface Range {
+  min: number;
+  max: number;
+}
+
+/**
+ * Kapasite ve fiyat, ham girdide boş olabilir: sihirbaz fiyatı menü
+ * paketlerinden, kapasiteyi alt alanlardan türetiyor. Bu yüzden doğrulama
+ * ham input'a değil, priceRange/capacityRange'ten çıkan SONUÇ değerlere
+ * bakmalı — aksi halde paketlere fiyat girilmiş geçerli bir mekan bile
+ * "Geçerli bir kişi başı fiyat aralığı girin" hatasıyla reddedilir.
+ */
+function validate(
+  input: VenueInput,
+  capacity: Range,
+  price: Range
+): string | null {
   if (!input.name || input.name.trim().length < 3)
     return "Mekan adı en az 3 karakter olmalıdır.";
   if (input.venue_types.length === 0) return "En az bir mekan tipi seçin.";
@@ -47,10 +63,10 @@ function validate(input: VenueInput): string | null {
     return "Açıklama en az 30 karakter olmalıdır.";
   if (input.categories.length === 0)
     return "En az bir etkinlik türü seçin.";
-  if (input.capacity_min <= 0 || input.capacity_max < input.capacity_min)
-    return "Geçerli bir kapasite aralığı girin.";
-  if (input.price_min <= 0 || input.price_max < input.price_min)
-    return "Geçerli bir kişi başı fiyat aralığı girin.";
+  if (capacity.min <= 0 || capacity.max < capacity.min)
+    return "Geçerli bir kapasite aralığı girin (veya alt alan ekleyin).";
+  if (price.min <= 0 || price.max < price.min)
+    return "Geçerli bir kişi başı fiyat girin (en az bir menü paketine fiyat yazın).";
   if (!input.phone || input.phone.replace(/\D/g, "").length < 10)
     return "Geçerli bir telefon numarası girin.";
   return null;
@@ -88,7 +104,14 @@ export async function saveVenue(input: VenueInput): Promise<SaveVenueResult> {
     };
   }
 
-  const error = validate(input);
+  const { min: priceMin, max: priceMax } = priceRange(input);
+  const { min: capMin, max: capMax } = capacityRange(input);
+
+  const error = validate(
+    input,
+    { min: capMin, max: capMax },
+    { min: priceMin, max: priceMax }
+  );
   if (error) return { ok: false, message: error };
 
   const supabase = await createClient();
@@ -106,9 +129,6 @@ export async function saveVenue(input: VenueInput): Promise<SaveVenueResult> {
     .eq("id", user.id)
     .maybeSingle();
   const ownerVerified = Boolean(profile?.verified);
-
-  const { min: priceMin, max: priceMax } = priceRange(input);
-  const { min: capMin, max: capMax } = capacityRange(input);
 
   const venueData = {
     name: input.name.trim(),

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CATEGORIES, CITIES, slugifyTr } from "@/lib/constants";
+import { CATEGORIES, FEATURED_CITIES, slugifyTr } from "@/lib/constants";
 import { IconArrowUpRight } from "@/components/icons";
 
 export function Footer() {
@@ -17,10 +17,10 @@ export function Footer() {
               ücretsiz teklif alın.
             </p>
             <Link
-              href="/panel/mekan-ekle"
+              href="/firmalar-icin"
               className="mt-6 inline-flex items-center gap-2 rounded-full border border-bordeaux/30 px-5 py-2.5 text-sm font-medium text-bordeaux transition-colors duration-500 ease-lux hover:bg-bordeaux hover:text-cream"
             >
-              Mekanını Ücretsiz Ekle
+              Mekan Sahibi misiniz?
               <IconArrowUpRight size={14} />
             </Link>
           </div>
@@ -30,7 +30,7 @@ export function Footer() {
               Popüler Şehirler
             </p>
             <ul className="mt-4 space-y-2.5">
-              {CITIES.slice(0, 6).map((city) => (
+              {FEATURED_CITIES.slice(0, 6).map((city) => (
                 <li key={city}>
                   <Link
                     href={`/mekanlar/${slugifyTr(city)}`}
@@ -72,8 +72,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/fiyatlandirma" className="text-sm text-ink-soft transition-colors duration-300 hover:text-bordeaux">
-                  Mekan Sahipleri İçin
+                <Link href="/firmalar-icin" className="text-sm text-ink-soft transition-colors duration-300 hover:text-bordeaux">
+                  Firmalar İçin
                 </Link>
               </li>
               <li>

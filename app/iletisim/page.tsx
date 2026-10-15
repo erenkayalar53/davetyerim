@@ -4,7 +4,7 @@ import { Reveal } from "@/components/reveal";
 export const metadata: Metadata = {
   title: "İletişim",
   description:
-    "davetyerim.com ile iletişime geçin — mekan kaydı, Premium abonelik ve iş birlikleri için bize ulaşın.",
+    "davetyerim.com ile iletişime geçin — mekan kaydı, firma başvuruları ve iş birlikleri için bize ulaşın.",
   alternates: { canonical: "/iletisim" },
 };
 
@@ -19,7 +19,7 @@ export default function ContactPage() {
           Bize ulaşın
         </h1>
         <p className="mt-4 max-w-xl leading-relaxed text-ink-soft">
-          Mekan kaydı, Premium abonelik, iş birliği veya başka bir konuda —
+          Mekan kaydı, firma başvurusu, iş birliği veya başka bir konuda —
           size en geç bir iş günü içinde dönüş yapıyoruz.
         </p>
       </Reveal>
@@ -53,7 +53,7 @@ export default function ContactPage() {
               mekan@davetyerim.com
             </p>
             <p className="mt-2 text-sm text-ink-soft">
-              Kayıt, Premium abonelik ve vitrin başvuruları
+              Mekan kaydı ve firma başvuruları
             </p>
           </a>
         </Reveal>

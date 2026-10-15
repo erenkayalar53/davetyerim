@@ -11,9 +11,11 @@ export const metadata: Metadata = {
 
 export default async function AddVenuePage() {
   if (isSupabaseConfigured()) {
+    // Mekan ekleme yalnızca onaylı mekan sahiplerine açık; diğer herkes
+    // firma başvuru sayfasına yönlendirilir.
     const session = await getSessionProfile();
-    if (!session) redirect("/kayit?tip=mekan");
-    if (session.profile.role === "user") redirect("/mekan-sahibi-ol");
+    if (!session) redirect("/firmalar-icin");
+    if (session.profile.role === "user") redirect("/firmalar-icin");
   }
 
   return (

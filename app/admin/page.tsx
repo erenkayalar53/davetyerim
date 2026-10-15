@@ -26,6 +26,18 @@ export const metadata: Metadata = {
 
 type VenueRow = Omit<Venue, "photos"> & { photos: VenuePhoto[] | null };
 
+interface OwnerInquiry {
+  id: string;
+  venue_name: string;
+  contact_name: string;
+  phone: string;
+  email: string;
+  city: string;
+  venue_type: string;
+  message: string;
+  created_at: string;
+}
+
 export default async function AdminPage() {
   if (!isSupabaseConfigured()) redirect("/panel");
 
@@ -34,21 +46,31 @@ export default async function AdminPage() {
   if (session.profile.role !== "admin") redirect("/panel");
 
   const supabase = await createClient();
-  const [{ data: venueData }, { count: leadCount }, { data: applicationData }] =
-    await Promise.all([
-      supabase
-        .from("venues")
-        .select("*, photos:venue_photos(*)")
-        .order("created_at", { ascending: false }),
-      supabase.from("leads").select("*", { count: "exact", head: true }),
-      supabase
-        .from("profiles")
-        .select("*")
-        .eq("owner_status", "pending")
-        .order("id", { ascending: true }),
-    ]);
+  const [
+    { data: venueData },
+    { count: leadCount },
+    { data: applicationData },
+    { data: inquiryData },
+  ] = await Promise.all([
+    supabase
+      .from("venues")
+      .select("*, photos:venue_photos(*)")
+      .order("created_at", { ascending: false }),
+    supabase.from("leads").select("*", { count: "exact", head: true }),
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("owner_status", "pending")
+      .order("id", { ascending: true }),
+    supabase
+      .from("owner_inquiries")
+      .select("*")
+      .eq("status", "new")
+      .order("created_at", { ascending: false }),
+  ]);
 
   const applications = (applicationData as Profile[]) ?? [];
+  const inquiries = (inquiryData as OwnerInquiry[]) ?? [];
 
   // Belgeler için kısa ömürlü imzalı bağlantılar üret (özel bucket)
   const docLinks: Record<string, { tax?: string; license?: string }> = {};
@@ -85,6 +107,16 @@ export default async function AdminPage() {
         Admin Paneli
       </h1>
 
+      <div className="mt-5 flex flex-wrap gap-2">
+        <Link
+          href="/admin/outreach"
+          className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-parchment px-4 py-2 text-sm text-ink-soft transition-colors duration-500 ease-lux hover:border-bordeaux/40 hover:text-bordeaux"
+        >
+          Mekan Erişim Otomasyonu
+          <IconArrowUpRight size={12} />
+        </Link>
+      </div>
+
       {/* Özet */}
       <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
@@ -106,6 +138,66 @@ export default async function AdminPage() {
           </div>
         ))}
       </div>
+
+      {/* Firmalar İçin formundan gelen başvurular */}
+      <section className="mt-14">
+        <h2 className="font-display text-2xl font-semibold text-ink">
+          Firma Başvuruları ({inquiries.length})
+        </h2>
+        {inquiries.length === 0 ? (
+          <p className="mt-4 text-sm text-ink-soft">
+            Yeni firma başvurusu yok.
+          </p>
+        ) : (
+          <div className="mt-6 flex flex-col gap-3">
+            {inquiries.map((inquiry) => (
+              <div
+                key={inquiry.id}
+                className="rounded-[1.5rem] border border-hairline bg-parchment p-5 shadow-float"
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <p className="font-display text-lg font-semibold text-ink">
+                    {inquiry.venue_name}
+                    {inquiry.venue_type && (
+                      <span className="ml-2 text-sm font-normal text-mute">
+                        {venueTypeLabel(inquiry.venue_type)}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs text-mute">
+                    {new Date(inquiry.created_at).toLocaleString("tr-TR")}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm text-ink-soft">
+                  {inquiry.contact_name}
+                  {inquiry.city && ` · ${inquiry.city}`}
+                </p>
+                {inquiry.message && (
+                  <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink-soft">
+                    {inquiry.message}
+                  </p>
+                )}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <a
+                    href={`tel:${inquiry.phone.replace(/\s/g, "")}`}
+                    className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-cream transition-colors duration-500 ease-lux hover:bg-ink-soft"
+                  >
+                    {inquiry.phone}
+                  </a>
+                  {inquiry.email && (
+                    <a
+                      href={`mailto:${inquiry.email}`}
+                      className="rounded-full border border-hairline px-4 py-2 text-sm text-ink-soft transition-colors duration-500 ease-lux hover:text-bordeaux"
+                    >
+                      {inquiry.email}
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Mekan sahibi başvuruları */}
       <section className="mt-14">

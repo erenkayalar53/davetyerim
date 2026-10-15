@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { signOut } from "@/app/actions/auth";
-import { IconArrowUpRight } from "@/components/icons";
+import { IconArrowUpRight, IconLogout } from "@/components/icons";
 import type { UserRole, OwnerStatus } from "@/lib/types";
 
 const NAV_LINKS = [
   { href: "/mekanlar", label: "Mekanlar" },
-  { href: "/fiyatlandirma", label: "Mekan Sahipleri" },
+  { href: "/rehber", label: "Rehber" },
   { href: "/hakkimizda", label: "Hakkımızda" },
   { href: "/iletisim", label: "İletişim" },
 ];
@@ -39,7 +39,7 @@ export function Header({ isLoggedIn, role, ownerStatus }: HeaderProps) {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4 sm:pt-6 pointer-events-none">
+      <header className="site-header fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4 sm:pt-6 pointer-events-none">
         <div className="pointer-events-auto flex w-full max-w-5xl items-center justify-between gap-4 rounded-full border border-hairline bg-parchment/80 py-2 pl-6 pr-2 shadow-float backdrop-blur-xl">
           <Link
             href="/"
@@ -74,10 +74,10 @@ export function Header({ isLoggedIn, role, ownerStatus }: HeaderProps) {
                   Giriş
                 </Link>
                 <Link
-                  href="/kayit?tip=mekan"
+                  href="/firmalar-icin"
                   className="group hidden items-center gap-2 rounded-full bg-bordeaux py-2 pl-5 pr-2 text-sm font-medium text-cream transition-all duration-500 ease-lux hover:bg-bordeaux-deep active:scale-[0.98] sm:flex"
                 >
-                  Mekanını Ekle
+                  Firmalar İçin
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 ease-lux group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105">
                     <IconArrowUpRight size={14} strokeWidth={2.2} />
                   </span>
@@ -87,19 +87,37 @@ export function Header({ isLoggedIn, role, ownerStatus }: HeaderProps) {
 
             {isLoggedIn && (
               <>
-                <Link
-                  href="/favorilerim"
-                  className="hidden rounded-full px-4 py-2 text-sm text-ink-soft transition-colors duration-500 ease-lux hover:text-ink sm:block"
-                >
-                  Favorilerim
-                </Link>
+                {!isOwner && (
+                  <>
+                    <Link
+                      href="/favorilerim"
+                      className="hidden rounded-full px-4 py-2 text-sm text-ink-soft transition-colors duration-500 ease-lux hover:text-ink sm:block"
+                    >
+                      Favorilerim
+                    </Link>
+                    <Link
+                      href="/tekliflerim"
+                      className="hidden rounded-full px-4 py-2 text-sm text-ink-soft transition-colors duration-500 ease-lux hover:text-ink sm:block"
+                    >
+                      Tekliflerim
+                    </Link>
+                  </>
+                )}
                 {isOwner ? (
-                  <Link
-                    href="/panel"
-                    className="hidden rounded-full bg-ink py-2 px-5 text-sm font-medium text-cream transition-all duration-500 ease-lux hover:bg-ink-soft active:scale-[0.98] sm:block"
-                  >
-                    Panelim
-                  </Link>
+                  <>
+                    <Link
+                      href="/panel/mekan-ekle"
+                      className="hidden rounded-full px-4 py-2 text-sm text-ink-soft transition-colors duration-500 ease-lux hover:text-ink sm:block"
+                    >
+                      Mekan Ekle
+                    </Link>
+                    <Link
+                      href="/panel"
+                      className="hidden rounded-full bg-ink py-2 px-5 text-sm font-medium text-cream transition-all duration-500 ease-lux hover:bg-ink-soft active:scale-[0.98] sm:block"
+                    >
+                      Panelim
+                    </Link>
+                  </>
                 ) : isPending ? (
                   <Link
                     href="/mekan-sahibi-ol"
@@ -109,12 +127,22 @@ export function Header({ isLoggedIn, role, ownerStatus }: HeaderProps) {
                   </Link>
                 ) : (
                   <Link
-                    href="/mekan-sahibi-ol"
+                    href="/firmalar-icin"
                     className="hidden rounded-full bg-bordeaux py-2 px-5 text-sm font-medium text-cream transition-all duration-500 ease-lux hover:bg-bordeaux-deep active:scale-[0.98] sm:block"
                   >
-                    Mekan Sahibi Ol
+                    Firmalar İçin
                   </Link>
                 )}
+                <form action={signOut} className="hidden sm:block">
+                  <button
+                    type="submit"
+                    title="Oturumu kapat"
+                    aria-label="Çıkış yap"
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-mute transition-colors duration-500 ease-lux hover:bg-cream-deep hover:text-bordeaux"
+                  >
+                    <IconLogout size={17} strokeWidth={1.8} />
+                  </button>
+                </form>
               </>
             )}
 
@@ -150,7 +178,12 @@ export function Header({ isLoggedIn, role, ownerStatus }: HeaderProps) {
           {[
             { href: "/", label: "Ana Sayfa" },
             ...NAV_LINKS,
-            ...(isLoggedIn ? [{ href: "/favorilerim", label: "Favorilerim" }] : []),
+            ...(isLoggedIn && !isOwner
+              ? [
+                  { href: "/favorilerim", label: "Favorilerim" },
+                  { href: "/tekliflerim", label: "Tekliflerim" },
+                ]
+              : []),
           ].map((link, i) => (
             <Link
               key={link.href}
@@ -173,10 +206,10 @@ export function Header({ isLoggedIn, role, ownerStatus }: HeaderProps) {
           {!isLoggedIn && (
             <>
               <Link
-                href="/kayit?tip=mekan"
+                href="/firmalar-icin"
                 className="rounded-full bg-bordeaux px-6 py-4 text-center font-medium text-cream"
               >
-                Mekanını Ücretsiz Ekle
+                Firmalar İçin
               </Link>
               <Link
                 href="/giris"
@@ -187,23 +220,31 @@ export function Header({ isLoggedIn, role, ownerStatus }: HeaderProps) {
             </>
           )}
           {isLoggedIn && isOwner && (
-            <Link
-              href="/panel"
-              className="rounded-full bg-ink px-6 py-4 text-center font-medium text-cream"
-            >
-              Panelim
-            </Link>
+            <>
+              <Link
+                href="/panel/mekan-ekle"
+                className="rounded-full bg-bordeaux px-6 py-4 text-center font-medium text-cream"
+              >
+                Mekan Ekle
+              </Link>
+              <Link
+                href="/panel"
+                className="rounded-full bg-ink px-6 py-4 text-center font-medium text-cream"
+              >
+                Panelim
+              </Link>
+            </>
           )}
           {isLoggedIn && !isOwner && (
             <Link
-              href="/mekan-sahibi-ol"
+              href={isPending ? "/mekan-sahibi-ol" : "/firmalar-icin"}
               className={`rounded-full px-6 py-4 text-center font-medium ${
                 isPending
                   ? "border border-gold/40 bg-gold/10 text-gold"
                   : "bg-bordeaux text-cream"
               }`}
             >
-              {isPending ? "Başvuru İnceleniyor" : "Mekan Sahibi Ol"}
+              {isPending ? "Başvuru İnceleniyor" : "Firmalar İçin"}
             </Link>
           )}
           {isLoggedIn && (

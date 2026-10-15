@@ -55,11 +55,11 @@ const COUPLE_FAQ: QA[] = [
 const OWNER_FAQ: QA[] = [
   {
     q: "Mekanımı eklemek ücretli mi?",
-    a: "Mekanınızı ücretsiz ekleyebilir ve teklif istekleri almaya başlayabilirsiniz. Komisyon almıyoruz. Daha fazla görünürlük isterseniz aylık Premium aboneliğe geçebilirsiniz.",
+    a: "Komisyon almıyoruz — rezervasyon başına hiçbir kesinti yapmıyoruz. Her mekanın ihtiyacı farklı olduğu için hazır paket satmıyoruz; “Firmalar İçin” sayfasındaki formu doldurun, sizi arayıp mekanınıza uygun çözümü birlikte belirleyelim.",
   },
   {
-    q: "Neden komisyon yerine abonelik?",
-    a: "Rezervasyon başına kesinti yapmıyoruz; kazandığınız her iş tamamen sizindir. Sadece görünürlüğünüzü artırmak isterseniz sabit aylık Premium ücreti ödersiniz — böylece maliyetiniz öngörülebilir olur.",
+    q: "Neden komisyon almıyorsunuz?",
+    a: "Rezervasyon başına kesinti, mekan sahibini cezalandıran bir model: ne kadar iyi iş yaparsanız o kadar çok ödersiniz. Biz sabit ve öngörülebilir bir yapı kuruyoruz; kazandığınız her iş tamamen sizde kalır.",
   },
   {
     q: "Mekan sahibi olmak için ne gerekiyor?",

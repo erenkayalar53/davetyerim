@@ -239,7 +239,11 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
         return "";
       }
       case 3: {
-        if (form.menu_packages.length === 0)
+        // Paket zorunlu, ancak mekanın kayıtlı bir kişi başı fiyatı zaten varsa
+        // değil: paket sistemi eklenmeden önce oluşturulmuş mekanlar bu alanı
+        // boş taşıyor, sırf takvimi güncellemek için fiyat tablosunu yeniden
+        // doldurmak zorunda kalmasınlar.
+        if (form.menu_packages.length === 0 && !venue?.price_min)
           return "En az bir fiyat paketi ekleyin (örn: Yemekli Menü).";
         for (const p of form.menu_packages) {
           if (!p.name.trim()) return "Her paketin bir adı olmalı.";
@@ -378,8 +382,11 @@ export function VenueWizard({ venue }: { venue?: Venue }) {
           whatsapp: form.whatsapp,
           capacity_min: Number(form.capacity_min) || 0,
           capacity_max: Number(form.capacity_max) || 0,
-          price_min: 0,
-          price_max: 0,
+          // Sihirbaz kişi başı fiyatı ayrıca sormuyor; sunucu bunu menü
+          // paketlerinden türetiyor. Paketi olmayan eski bir mekan düzenlenirken
+          // mevcut fiyatı geçiriyoruz ki güncelleme onu sıfırlamasın.
+          price_min: venue?.price_min ?? 0,
+          price_max: venue?.price_max ?? 0,
           venue_types: form.venue_types,
           categories: form.categories,
           features: form.features,
