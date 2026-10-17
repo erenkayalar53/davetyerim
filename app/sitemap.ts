@@ -40,15 +40,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const guideCategoryPages: MetadataRoute.Sitemap = ARTICLE_CATEGORIES.map(
-    (c) => ({
-      url: `${SITE_URL}/rehber/kategori/${c.slug}`,
-      changeFrequency: "weekly",
-      priority: 0.5,
-    })
-  );
+  // Sitemap'e yalnızca içinde yazı bulunan kategoriler girer. Boş kategori
+  // sayfası ince içeriktir; sitemap'e konursa "tara" derken sayfa noindex
+  // olduğu için "dizine alma" denmiş olur — il sayfalarındaki kuralın aynısı.
+  const articles = getAllArticles();
+  const guideCategoryPages: MetadataRoute.Sitemap = ARTICLE_CATEGORIES.filter(
+    (c) => articles.some((a) => a.category === c.slug)
+  ).map((c) => ({
+    url: `${SITE_URL}/rehber/kategori/${c.slug}`,
+    changeFrequency: "weekly",
+    priority: 0.5,
+  }));
 
-  const articlePages: MetadataRoute.Sitemap = getAllArticles().map((a) => ({
+  const articlePages: MetadataRoute.Sitemap = articles.map((a) => ({
     url: `${SITE_URL}/rehber/${a.slug}`,
     lastModified: a.updatedAt ? new Date(a.updatedAt) : undefined,
     changeFrequency: "monthly",
