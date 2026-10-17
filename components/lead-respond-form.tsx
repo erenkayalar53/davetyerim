@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { respondToLead } from "@/app/actions/owner";
 import type { Lead } from "@/lib/types";
 
@@ -13,6 +13,7 @@ import type { Lead } from "@/lib/types";
  */
 export function LeadRespondForm({ lead }: { lead: Lead }) {
   const [open, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
   const answered = Boolean(lead.responded_at);
 
   if (answered && !open) {
@@ -50,7 +51,19 @@ export function LeadRespondForm({ lead }: { lead: Lead }) {
   }
 
   return (
-    <form action={respondToLead} className="flex flex-col gap-2">
+    // Aksiyon doğrudan verilmiyor: sunucu veriyi güncelleyip sayfayı yeniden
+    // doğruluyor ama `open` true kaldığı için bileşen formu göstermeye devam
+    // ediyordu. Sahibi yanıtını gönderdikten sonra ekranda bir değişiklik
+    // görmüyor, sayfayı elle yenilemek zorunda kalıyordu.
+    <form
+      action={(formData) => {
+        startTransition(async () => {
+          await respondToLead(formData);
+          setOpen(false);
+        });
+      }}
+      className="flex flex-col gap-2"
+    >
       <input type="hidden" name="id" value={lead.id} />
       <input
         name="quoted_price"
@@ -72,14 +85,16 @@ export function LeadRespondForm({ lead }: { lead: Lead }) {
       <div className="flex gap-2">
         <button
           type="submit"
-          className="rounded-full bg-sage px-4 py-1.5 text-xs font-medium text-cream transition-opacity hover:opacity-90"
+          disabled={pending}
+          className="rounded-full bg-sage px-4 py-1.5 text-xs font-medium text-cream transition-opacity hover:opacity-90 disabled:opacity-60"
         >
-          Gönder
+          {pending ? "Gönderiliyor…" : "Gönder"}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="text-[11px] text-mute hover:text-ink"
+          disabled={pending}
+          className="text-[11px] text-mute hover:text-ink disabled:opacity-50"
         >
           Vazgeç
         </button>
