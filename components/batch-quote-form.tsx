@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createBatchLeads, type LeadFormState } from "@/app/actions/leads";
 import { CATEGORIES, formatPrice } from "@/lib/constants";
 import { IconCheck } from "@/components/icons";
+import { KvkkNotice } from "@/components/kvkk-notice";
 import type { Venue } from "@/lib/types";
 
 const initialState: LeadFormState = { ok: null, message: "" };
@@ -205,6 +206,8 @@ export function BatchQuoteForm({ venues }: { venues: Venue[] }) {
       <p className="mt-3 text-center text-xs text-mute">
         Seçtiğiniz tarihte dolu olan mekanlar otomatik atlanır.
       </p>
+
+      <KvkkNotice className="mt-2" />
     </form>
   );
 }

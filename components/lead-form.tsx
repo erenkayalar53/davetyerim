@@ -5,6 +5,7 @@ import { createLead, type LeadFormState } from "@/app/actions/leads";
 import { CATEGORIES } from "@/lib/constants";
 import { IconArrowUpRight, IconCheck } from "@/components/icons";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
+import { KvkkNotice } from "@/components/kvkk-notice";
 
 const initialState: LeadFormState = { ok: null, message: "" };
 
@@ -144,6 +145,8 @@ export function LeadForm({
           <IconArrowUpRight size={15} strokeWidth={2.2} />
         </span>
       </button>
+
+      <KvkkNotice className="mt-3" />
     </form>
   );
 }

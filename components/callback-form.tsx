@@ -6,6 +6,7 @@ import {
   type LeadFormState,
 } from "@/app/actions/leads";
 import { IconCheck } from "@/components/icons";
+import { KvkkNotice } from "@/components/kvkk-notice";
 
 const initialState: LeadFormState = { ok: null, message: "" };
 
@@ -77,6 +78,8 @@ export function CallbackForm({ venueId }: { venueId: string }) {
       {state.ok === false && (
         <p className="mt-3 text-sm text-bordeaux">{state.message}</p>
       )}
+
+      <KvkkNotice className="mt-3" />
     </form>
   );
 }

@@ -7,6 +7,7 @@ import {
 } from "@/app/actions/owner-inquiry";
 import { CITIES, VENUE_TYPES } from "@/lib/constants";
 import { IconArrowUpRight, IconCheck } from "@/components/icons";
+import { KvkkNotice } from "@/components/kvkk-notice";
 
 const initialState: OwnerInquiryState = { ok: null, message: "" };
 
@@ -115,6 +116,8 @@ export function OwnerInquiryForm() {
       <p className="mt-3 text-center text-xs text-mute">
         Bilgileriniz yalnızca davetyerim ekibiyle paylaşılır.
       </p>
+
+      <KvkkNotice className="mt-2" />
     </form>
   );
 }
