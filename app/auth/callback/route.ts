@@ -69,12 +69,24 @@ export async function GET(request: NextRequest) {
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, owner_status")
       .eq("id", user.id)
       .maybeSingle();
 
     if (profile?.role === "owner" || profile?.role === "admin") {
       return NextResponse.redirect(`${origin}/panel`);
+    }
+
+    // "Mekan Sahibi" seçerek kayıt olan kullanıcı doğrulamadan sonra henüz
+    // `user` rolünde: sahiplik admin onaylı başvuruyla kazanılıyor. Mekan
+    // listesine düşerse başvuru sayfasını kendi bulmak zorunda kalır, çoğu
+    // da bulmaz. Başvurusu yoksa doğrudan başvuru formuna gönderiyoruz.
+    const wantsOwner = user.user_metadata?.account_type === "owner";
+    const notAppliedYet =
+      !profile?.owner_status || profile.owner_status === "none";
+
+    if (wantsOwner && notAppliedYet) {
+      return NextResponse.redirect(`${origin}/mekan-sahibi-ol`);
     }
   }
 
