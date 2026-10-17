@@ -52,6 +52,40 @@ export async function signIn(
   redirect(destination);
 }
 
+/**
+ * Supabase'in İngilizce hata metnini kullanıcıya anlamlı Türkçe karşılığına
+ * çevirir.
+ *
+ * Tek bir "bir hata oluştu" mesajı hem kullanıcıyı çaresiz bırakıyor hem de
+ * sorunu bizim tarafımızda görünmez kılıyordu: mail kotasının dolması,
+ * yönlendirme adresinin izin listesinde olmaması ve zayıf şifre birbirinden
+ * tamamen farklı sorunlar ve çözümleri de farklı.
+ */
+function signUpErrorMessage(raw: string): string {
+  const m = raw.toLowerCase();
+
+  if (m.includes("already registered") || m.includes("already been registered")) {
+    return "Bu e-posta ile zaten bir hesap var. Giriş yapmayı deneyin.";
+  }
+  if (m.includes("rate limit") || m.includes("too many requests")) {
+    return "Çok fazla deneme yapıldı. Lütfen birkaç dakika sonra tekrar deneyin.";
+  }
+  if (m.includes("redirect") && m.includes("not allowed")) {
+    return "Doğrulama adresi yapılandırmasında bir sorun var. Lütfen bizimle iletişime geçin.";
+  }
+  if (m.includes("password")) {
+    return "Şifre yeterince güçlü değil. En az 8 karakter kullanın.";
+  }
+  if (m.includes("invalid") && m.includes("email")) {
+    return "E-posta adresi geçersiz görünüyor. Lütfen kontrol edin.";
+  }
+  if (m.includes("signup") && m.includes("disabled")) {
+    return "Yeni kayıtlar geçici olarak kapalı. Lütfen daha sonra tekrar deneyin.";
+  }
+
+  return "Kayıt sırasında bir hata oluştu, lütfen tekrar deneyin.";
+}
+
 export async function signUp(
   _prev: AuthFormState,
   formData: FormData
@@ -91,13 +125,11 @@ export async function signUp(
   });
 
   if (error) {
-    return {
-      ok: false,
-      message:
-        error.message === "User already registered"
-          ? "Bu e-posta ile zaten bir hesap var. Giriş yapmayı deneyin."
-          : "Kayıt sırasında bir hata oluştu, lütfen tekrar deneyin.",
-    };
+    // Supabase'in hatası sunucu günlüğüne olduğu gibi yazılır: kullanıcıya
+    // gösterilen metin sadeleştirildiği için, teşhis edilebilir tek yer burası.
+    console.error("[signUp]", error.status, error.code, error.message);
+
+    return { ok: false, message: signUpErrorMessage(error.message) };
   }
 
   if (data.session) {
