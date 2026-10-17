@@ -1,4 +1,5 @@
 import { MOCK_VENUES } from "./mock-data";
+import { demoDataEnabled } from "./demo-mode";
 import { createClient, isSupabaseConfigured } from "./supabase/server";
 import { slugifyTr, CITIES } from "./constants";
 import type { Venue, VenueFilters, VenuePhoto } from "./types";
@@ -149,9 +150,10 @@ export function cityFromSlug(slug: string): string | undefined {
  * hem de sitemap'e girip girmeyeceğini belirler.
  */
 export async function getCityVenueCount(city: string): Promise<number> {
-  if (!isSupabaseConfigured()) {
+  if (demoDataEnabled()) {
     return MOCK_VENUES.filter((v) => v.city === city).length;
   }
+  if (!isSupabaseConfigured()) return 0;
 
   const supabase = await createClient();
   const { count } = await supabase
@@ -188,7 +190,7 @@ export async function getVenues(
 ): Promise<{ venues: Venue[]; total: number; pageSize: number }> {
   const page = Math.max(1, filters.page ?? 1);
 
-  if (!isSupabaseConfigured()) {
+  if (demoDataEnabled()) {
     const filtered = sortVenues(
       applyFilters(MOCK_VENUES, filters),
       filters.sort
@@ -198,6 +200,10 @@ export async function getVenues(
       total: filtered.length,
       pageSize: PAGE_SIZE,
     };
+  }
+
+  if (!isSupabaseConfigured()) {
+    return { venues: [], total: 0, pageSize: PAGE_SIZE };
   }
 
   const supabase = await createClient();
@@ -273,9 +279,10 @@ export async function getVenues(
 }
 
 export async function getVenueBySlug(slug: string): Promise<Venue | null> {
-  if (!isSupabaseConfigured()) {
+  if (demoDataEnabled()) {
     return MOCK_VENUES.find((v) => v.slug === slug) ?? null;
   }
+  if (!isSupabaseConfigured()) return null;
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -318,9 +325,11 @@ export async function getSimilarVenues(
 export async function getApprovedVenuesForSitemap(): Promise<
   { slug: string; updated_at?: string }[]
 > {
-  if (!isSupabaseConfigured()) {
-    return MOCK_VENUES.map((v) => ({ slug: v.slug }));
-  }
+  // Demo veri sitemap'e asla girmez: Google'a sahte mekan sayfası bildirmek
+  // hem kalitesiz içerik sinyali verir hem de veri gerçeğe döndüğünde
+  // kırık URL bırakır.
+  if (demoDataEnabled() || !isSupabaseConfigured()) return [];
+
   const supabase = await createClient();
   const { data } = await supabase
     .from("venues")
@@ -333,8 +342,10 @@ export async function getCityCounts(): Promise<
   { city: string; slug: string; count: number }[]
 > {
   let venues: { city: string }[];
-  if (!isSupabaseConfigured()) {
+  if (demoDataEnabled()) {
     venues = MOCK_VENUES;
+  } else if (!isSupabaseConfigured()) {
+    venues = [];
   } else {
     const supabase = await createClient();
     const { data } = await supabase
@@ -355,9 +366,10 @@ export async function getCityCounts(): Promise<
 
 // Admin önizleme: onay durumundan bağımsız mekan getir (RLS admin/sahip erişimi verir)
 export async function getVenueByIdForPreview(id: string): Promise<Venue | null> {
-  if (!isSupabaseConfigured()) {
+  if (demoDataEnabled()) {
     return MOCK_VENUES.find((v) => v.id === id) ?? null;
   }
+  if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("venues")

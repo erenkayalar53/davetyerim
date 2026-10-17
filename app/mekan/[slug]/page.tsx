@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { venueRobots } from "@/lib/demo-mode";
 import { Gallery } from "@/components/gallery";
 import { LeadForm } from "@/components/lead-form";
 import { CallbackForm } from "@/components/callback-form";
@@ -54,6 +55,9 @@ export async function generateMetadata({
     title: `${venue.name} — ${venue.city} ${venueTypeLabel(venue.venue_type)} Fiyatları`,
     description: `${venue.name} (${venue.district ? venue.district + ", " : ""}${venue.city}) — ${venue.capacity_min}-${venue.capacity_max} kişi kapasiteli, kişi başı ${formatPrice(venue.price_min)}-${formatPrice(venue.price_max)} ₺. Ücretsiz teklif alın.`,
     alternates: { canonical: `/mekan/${venue.slug}` },
+    // Demo veri gösterilirken sayfa dizine alınmaz: içerik gerçek bir
+    // işletmeye ait değil.
+    robots: venueRobots(),
     // openGraph.images'i burada ELLE VERMEYİN: verilirse opengraph-image.tsx'i
     // ezer ve ham fotoğraf URL'i paylaşılır. Depodaki fotoğraflar AVIF olabiliyor
     // ve sosyal medya tarayıcıları AVIF'i render edemiyor — önizleme boş çıkar.
