@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { SITE_URL } from "@/lib/constants";
 
 export interface AuthFormState {
   ok: boolean | null;
@@ -82,6 +83,10 @@ export async function signUp(
     password,
     options: {
       data: { full_name: fullName, phone, account_type: accountType },
+      // Doğrulama bağlantısı /auth/callback'e dönmeli: orada oturum kurulup
+      // kullanıcı rolüne göre yönlendiriliyor. Verilmezse Supabase panelindeki
+      // Site URL'e düşer ve kullanıcı giriş yapmamış hâlde ana sayfada kalır.
+      emailRedirectTo: `${SITE_URL}/auth/callback`,
     },
   });
 
