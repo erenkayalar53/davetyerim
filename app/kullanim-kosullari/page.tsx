@@ -15,7 +15,9 @@ export const metadata: Metadata = {
 };
 
 const operatorRows: Array<{ label: string; value: string }> = [
-  { label: "Ticari unvan", value: OPERATOR_INFO.legalName },
+  // Gerçek kişi işletmede unvan yerine ad-soyad yazılır; şirket kurulduğunda
+  // aynı alan ticari unvanı taşır.
+  { label: "Ticari unvan / Ad Soyad", value: OPERATOR_INFO.legalName },
   { label: "Adres", value: OPERATOR_INFO.address },
   { label: "Vergi dairesi", value: OPERATOR_INFO.taxOffice },
   { label: "Vergi kimlik numarası", value: OPERATOR_INFO.taxNumber },

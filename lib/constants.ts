@@ -236,7 +236,7 @@ export const SITE_DESCRIPTION =
  * boş kalabilir; şirketse zorunludur.
  */
 export const OPERATOR_INFO = {
-  legalName: "",
+  legalName: "Eren Kayalar",
   address: "",
   taxOffice: "",
   taxNumber: "",
