@@ -1,15 +1,5 @@
 import { OPERATOR_INFO } from "@/lib/constants";
-
-export type LegalBlock =
-  | { type: "p"; text: string }
-  | { type: "list"; items: string[] };
-
-export type LegalSection = {
-  heading: string;
-  blocks: LegalBlock[];
-  /** Bölümün sonuna işletme tanıtıcı bilgilerinin tablosunu basar. */
-  extra?: "operatorInfo";
-};
+import type { LegalSection } from "@/lib/legal-types";
 
 export const TERMS_EFFECTIVE_DATE = "17 Ekim 2026";
 
