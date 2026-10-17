@@ -118,6 +118,26 @@ export function AuthForm({ mode }: { mode: "giris" | "kayit" }) {
               : "Hesap Oluştur"}
         </button>
 
+        {mode === "kayit" && (
+          <p className="mt-1 text-center text-xs leading-relaxed text-mute">
+            Hesap oluşturarak{" "}
+            <Link
+              href="/kullanim-kosullari"
+              className="text-ink-soft underline decoration-hairline underline-offset-4 hover:text-bordeaux"
+            >
+              Kullanım Koşulları
+            </Link>
+            {"'nı ve "}
+            <Link
+              href="/gizlilik"
+              className="text-ink-soft underline decoration-hairline underline-offset-4 hover:text-bordeaux"
+            >
+              Gizlilik Politikası
+            </Link>
+            {"'nı kabul etmiş olursunuz."}
+          </p>
+        )}
+
         <p className="mt-2 text-center text-sm text-ink-soft">
           {mode === "giris" ? (
             <>

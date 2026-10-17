@@ -223,3 +223,24 @@ function resolveSiteUrl(): string {
 export const SITE_URL = resolveSiteUrl();
 export const SITE_DESCRIPTION =
   "Düğün, nişan, kına, sünnet ve kurumsal etkinlikler için Türkiye'nin dört bir yanından yüzlerce mekanı keşfedin. Kişi başı fiyatları karşılaştırın, ücretsiz teklif alın.";
+
+/**
+ * İşletmeye ilişkin tanıtıcı bilgiler.
+ *
+ * 6563 sayılı Elektronik Ticaretin Düzenlenmesi Hakkında Kanun'un 3. maddesi,
+ * hizmet sağlayıcının bu bilgileri sitede güncel olarak bulundurmasını
+ * zorunlu kılar. Boş bırakılan alanlar Kullanım Koşulları sayfasında
+ * gösterilmez — eksik bilgi yayınlamak yerine hiç göstermemek tercih edildi.
+ *
+ * DOMAINE GEÇMEDEN ÖNCE DOLDURULMASI GEREKİR. Şahıs işletmesiyse mersisNo
+ * boş kalabilir; şirketse zorunludur.
+ */
+export const OPERATOR_INFO = {
+  legalName: "",
+  address: "",
+  taxOffice: "",
+  taxNumber: "",
+  mersisNo: "",
+  email: "info@davetyerim.com",
+  ownerEmail: "mekan@davetyerim.com",
+} as const;

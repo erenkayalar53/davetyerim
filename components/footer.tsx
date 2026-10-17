@@ -92,6 +92,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/kullanim-kosullari" className="text-sm text-ink-soft transition-colors duration-300 hover:text-bordeaux">
+                  Kullanım Koşulları
+                </Link>
+              </li>
+              <li>
                 <Link href="/giris" className="text-sm text-ink-soft transition-colors duration-300 hover:text-bordeaux">
                   Mekan Sahibi Girişi
                 </Link>

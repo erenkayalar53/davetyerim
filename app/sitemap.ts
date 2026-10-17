@@ -18,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/hakkimizda`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${SITE_URL}/iletisim`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${SITE_URL}/gizlilik`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${SITE_URL}/kullanim-kosullari`, changeFrequency: "yearly", priority: 0.2 },
   ];
 
   // Sitemap'e yalnızca gerçekten mekanı olan iller girer. Envanteri olmayan
