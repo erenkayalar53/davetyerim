@@ -5,6 +5,7 @@ import {
   parseFilters,
   type SearchParams,
 } from "@/lib/search-params";
+import { hasPublishedVenues } from "@/lib/data";
 
 interface PageProps {
   searchParams: Promise<SearchParams>;
@@ -16,11 +17,13 @@ export async function generateMetadata({
   const sp = await searchParams;
   const filters = parseFilters(sp);
   const title = directoryTitle(undefined, filters.categories);
+  // Filtreli görünümler ve envanterin boş olduğu hâl dizine girmemeli.
+  const noindex = isFilteredView(sp) || !(await hasPublishedVenues());
   return {
     title: `${title} ve Fiyatları`,
     description: `${title} — kapasite, kişi başı fiyat ve mekan özelliklerine göre karşılaştırın, ücretsiz teklif alın.`,
     alternates: { canonical: "/mekanlar" },
-    ...(isFilteredView(sp) ? { robots: { index: false, follow: true } } : {}),
+    ...(noindex ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

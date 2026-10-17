@@ -338,6 +338,27 @@ export async function getApprovedVenuesForSitemap(): Promise<
   return data ?? [];
 }
 
+/**
+ * Yayınlanmış en az bir mekan var mı?
+ *
+ * Envanter boşken /mekanlar sayfası arama motoruna ince içerik olarak
+ * gitmemeli: boş bir pazar yeri sayfası dizine girerse, envanter geldiğinde
+ * o değerlendirmeyi geri çevirmek zor olur. Sayım `head: true` ile yapılır,
+ * satır taşınmaz.
+ */
+export async function hasPublishedVenues(): Promise<boolean> {
+  if (demoDataEnabled()) return MOCK_VENUES.length > 0;
+  if (!isSupabaseConfigured()) return false;
+
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("venues")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "approved");
+
+  return (count ?? 0) > 0;
+}
+
 export async function getCityCounts(): Promise<
   { city: string; slug: string; count: number }[]
 > {
