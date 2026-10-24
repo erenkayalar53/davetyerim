@@ -1,7 +1,7 @@
 import { OPERATOR_INFO } from "@/lib/constants";
 import type { LegalSection } from "@/lib/legal-types";
 
-export const PRIVACY_EFFECTIVE_DATE = "17 Ekim 2026";
+export const PRIVACY_EFFECTIVE_DATE = "24 Ekim 2026";
 
 /**
  * KVKK Aydınlatma Metni.
@@ -201,6 +201,11 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
             value:
               "Küresel ağ. Siteye erişim sırasında bağlantı verileri güvenlik amacıyla işlenir.",
           },
+          {
+            label: "Google (ziyaretçi istatistiği — Google Analytics 4)",
+            value:
+              "ABD merkezli sağlayıcı. Yalnızca analitik çerezlere açık rıza vermeniz hâlinde devreye girer; bu durumda cihaz ve kullanım verileriniz Google altyapısında işlenir. Onay vermezseniz veya onayınızı geri alırsanız bu aktarım hiç gerçekleşmez.",
+          },
         ],
       },
       {
@@ -260,11 +265,34 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     blocks: [
       {
         type: "p",
-        text: "Platform hâlihazırda yalnızca zorunlu çerezler kullanır. Bu çerezler oturumunuzun açık kalmasını ve güvenlik doğrulamalarının yapılmasını sağlar; olmadıkları takdirde giriş yapmanız mümkün olmaz. Zorunlu çerezler için açık rıza aranmaz.",
+        text: "Platform iki tür çerez kullanır: zorunlu çerezler ve açık rızanıza bağlı analitik çerezler. Siteyi ilk açtığınızda tercihlerinizi soran bir bilgilendirme bandı gösterilir.",
+      },
+      {
+        type: "table",
+        rows: [
+          {
+            label: "Zorunlu çerezler",
+            value:
+              "Oturumunuzun açık kalmasını ve güvenlik doğrulamalarının yapılmasını sağlar; olmadıkları takdirde giriş yapmanız mümkün olmaz. Zorunlu çerezler için açık rıza aranmaz ve kapatılamaz.",
+          },
+          {
+            label: "Analitik çerezler (Google Analytics 4)",
+            value:
+              "Hangi sayfaların ilgi gördüğünü ve ziyaretçilerin siteyi nasıl kullandığını ölçer. Yalnızca açık rıza vermeniz hâlinde çalışır: onay verilmediği sürece Google Analytics kodu sayfaya hiç yüklenmez ve Google’a hiçbir istek gönderilmez.",
+          },
+        ],
       },
       {
         type: "p",
-        text: "Platform şu an reklam veya izleme amaçlı çerez kullanmamaktadır. İleride ziyaretçi istatistiği veya reklam çerezleri kullanılması hâlinde, bu çerezler yalnızca açık rızanızla çalıştırılacak, siteye bir çerez bilgilendirme ve tercih yönetimi aracı eklenecek ve bu metin güncellenecektir.",
+        text: "Analitik çerezlere verdiğiniz onayı dilediğiniz zaman geri alabilirsiniz. Sayfanın altındaki “Çerez Ayarları” bağlantısı bilgilendirme bandını yeniden açar; reddetmeniz hâlinde ölçüm kodu bir daha yüklenmez. Reddetmek, kabul etmekle aynı kolaylıktadır ve sitenin hiçbir işlevini kısıtlamaz.",
+      },
+      {
+        type: "p",
+        text: "Bunlara ek olarak, barındırma sağlayıcımızın sunduğu Vercel Web Analytics ile toplam ziyaret sayısı ölçülür. Bu araç çerez yerleştirmez, tarayıcınızda veri saklamaz ve ziyaretçileri tekil olarak tanımlamaz; yalnızca toplulaştırılmış sayfa görüntüleme istatistiği üretir. Bu nedenle çerez onayına tabi değildir ve tercihinizden bağımsız olarak çalışır.",
+      },
+      {
+        type: "p",
+        text: "Platform reklam veya profilleme amaçlı çerez kullanmamaktadır. İleride bu tür çerezler kullanılması hâlinde ayrı bir onay kategorisi olarak sunulacak ve bu metin güncellenecektir.",
       },
       {
         type: "p",

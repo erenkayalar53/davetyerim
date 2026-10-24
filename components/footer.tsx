@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CATEGORIES, FEATURED_CITIES, slugifyTr } from "@/lib/constants";
 import { IconArrowUpRight } from "@/components/icons";
+import { CookieSettingsLink } from "@/components/cookie-settings-link";
 
 export function Footer() {
   return (
@@ -95,6 +96,9 @@ export function Footer() {
                 <Link href="/kullanim-kosullari" className="text-sm text-ink-soft transition-colors duration-300 hover:text-bordeaux">
                   Kullanım Koşulları
                 </Link>
+              </li>
+              <li>
+                <CookieSettingsLink />
               </li>
               <li>
                 <Link href="/giris" className="text-sm text-ink-soft transition-colors duration-300 hover:text-bordeaux">

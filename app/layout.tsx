@@ -4,7 +4,8 @@ import { SITE_NAME, SITE_URL, SITE_DESCRIPTION } from "@/lib/constants";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { getSessionProfile } from "@/lib/auth";
-import { GoogleAnalytics } from "@/components/google-analytics";
+import { CookieConsent } from "@/components/cookie-consent";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -54,7 +55,8 @@ export default async function RootLayout({
         />
         <main className="flex-1">{children}</main>
         <Footer />
-        {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
+        <CookieConsent gaId={gaId ?? null} />
+        <Analytics />
       </body>
     </html>
   );
