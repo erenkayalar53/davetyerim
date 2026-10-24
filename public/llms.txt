@@ -1,0 +1,32 @@
+# Davet Yerim
+
+> Türkiye genelinde düğün, nişan, kına, sünnet ve kurumsal davet mekanlarını
+> listeleyen pazaryeri. Çiftler mekanları kapasite, kişi başı fiyat ve
+> özelliklere göre karşılaştırır, ücretsiz teklif ister. Mekan sahiplerinden
+> rezervasyon komisyonu alınmaz; gelir modeli aylık aboneliktir.
+
+Site: https://davetyerim.com
+Dil: Türkçe
+
+## Önemli sayfalar
+
+- [Ana sayfa](https://davetyerim.com): Şehir ve kategoriye göre mekan keşfi.
+- [Tüm mekanlar](https://davetyerim.com/mekanlar): Kapasite, kişi başı fiyat, mekan tipi ve özellik filtreleriyle arama.
+- [Rehber](https://davetyerim.com/rehber): Düğün hazırlığı üzerine editoryal içerikler.
+- [Firmalar için](https://davetyerim.com/firmalar-icin): Mekan sahiplerinin platforma katılma koşulları.
+- [Sıkça sorulan sorular](https://davetyerim.com/sss): Çiftler ve mekan sahipleri için yanıtlar.
+
+## Rehber içerikleri
+
+- [Düğün mekanı nasıl seçilir](https://davetyerim.com/rehber/dugun-mekani-nasil-secilir)
+- [Düğün bütçesi ve maliyetleri 2026](https://davetyerim.com/rehber/dugun-butcesi-maliyeti-2026)
+- [Kişi başı fiyat neleri kapsar](https://davetyerim.com/rehber/dugun-salonu-kisi-basi-fiyat-neleri-kapsar)
+- [Kaç kişilik mekan gerekir — kapasite hesabı](https://davetyerim.com/rehber/kac-kisilik-dugun-mekani-kapasite-hesabi)
+- [Mekandan teklif alma şablonu](https://davetyerim.com/rehber/dugun-mekanindan-teklif-alma-sablonu)
+
+## Kurumsal
+
+- [Hakkımızda](https://davetyerim.com/hakkimizda)
+- [İletişim](https://davetyerim.com/iletisim)
+- [Gizlilik Politikası ve KVKK Aydınlatma Metni](https://davetyerim.com/gizlilik)
+- [Kullanım Koşulları](https://davetyerim.com/kullanim-kosullari)

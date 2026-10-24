@@ -222,7 +222,7 @@ function resolveSiteUrl(): string {
 
 export const SITE_URL = resolveSiteUrl();
 export const SITE_DESCRIPTION =
-  "Düğün, nişan, kına, sünnet ve kurumsal etkinlikler için Türkiye'nin dört bir yanından yüzlerce mekanı keşfedin. Kişi başı fiyatları karşılaştırın, ücretsiz teklif alın.";
+  "Düğün, nişan, kına ve kurumsal davetler için Türkiye'nin dört bir yanındaki mekanları keşfedin. Kişi başı fiyatları karşılaştırın, ücretsiz teklif alın.";
 
 /**
  * İşletmeye ilişkin tanıtıcı bilgiler.

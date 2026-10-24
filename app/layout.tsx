@@ -32,6 +32,11 @@ export const metadata: Metadata = {
     locale: "tr_TR",
     type: "website",
   },
+  // Search Console'un HTML etiketi yöntemiyle doğrulanması için. Env boşsa
+  // etiket hiç basılmaz; DNS TXT ile doğrulandıysa zaten gerekmez.
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
 };
 
 export default async function RootLayout({

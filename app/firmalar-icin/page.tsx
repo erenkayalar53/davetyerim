@@ -4,9 +4,9 @@ import { OwnerInquiryForm } from "@/components/owner-inquiry-form";
 import { IconCheck } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: "Firmalar İçin — Mekanınızı davetyerim'e Ekleyin",
+  title: "Mekanınızı davetyerim'e Ekleyin",
   description:
-    "Düğün salonu, kır bahçesi, otel veya davet mekanı işletiyorsanız davetyerim'de yerinizi alın. Komisyon yok. Bize ulaşın, mekanınıza uygun çözümü birlikte belirleyelim.",
+    "Düğün salonu, kır bahçesi veya davet mekanı işletiyorsanız davetyerim'de yerinizi alın. Rezervasyon komisyonu yok, aylık abonelik modeli.",
   alternates: { canonical: "/firmalar-icin" },
 };
 

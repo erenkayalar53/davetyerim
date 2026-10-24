@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Şablon dosyası depoda kalmalı: içinde gizli değer yok, kurulum rehberi işlevi görüyor.
+!.env.example
