@@ -12,6 +12,10 @@ export interface OwnerApplicationInput {
   note: string;
   tax_document_path: string;
   license_document_path: string;
+  /** İsteğe bağlı: faaliyet belgesi / ticaret sicil. */
+  trade_registry_document_path?: string;
+  /** İsteğe bağlı: yalnızca alkollü paket sunan mekanlar için anlamlı. */
+  alcohol_license_document_path?: string;
 }
 
 export interface OwnerApplicationResult {
@@ -56,6 +60,8 @@ export async function applyForOwner(
     p_note: input.note.trim(),
     p_tax_doc: input.tax_document_path,
     p_license_doc: input.license_document_path,
+    p_trade_doc: input.trade_registry_document_path ?? "",
+    p_alcohol_doc: input.alcohol_license_document_path ?? "",
   });
 
   if (error) {

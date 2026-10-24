@@ -30,6 +30,8 @@ export function OwnerApplicationForm({
   });
   const [taxDoc, setTaxDoc] = useState<File | null>(null);
   const [licenseDoc, setLicenseDoc] = useState<File | null>(null);
+  const [tradeDoc, setTradeDoc] = useState<File | null>(null);
+  const [alcoholDoc, setAlcoholDoc] = useState<File | null>(null);
 
   function set(key: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -69,9 +71,14 @@ export function OwnerApplicationForm({
       try {
         let taxPath = "";
         let licensePath = "";
+        let tradePath = "";
+        let alcoholPath = "";
         if (isSupabaseConfigured) {
           if (taxDoc) taxPath = await uploadDoc(taxDoc, "vergi-levhasi");
           if (licenseDoc) licensePath = await uploadDoc(licenseDoc, "ruhsat");
+          if (tradeDoc) tradePath = await uploadDoc(tradeDoc, "faaliyet-belgesi");
+          if (alcoholDoc)
+            alcoholPath = await uploadDoc(alcoholDoc, "alkol-belgesi");
         }
         const result = await applyForOwner({
           business_name: form.business_name,
@@ -81,6 +88,8 @@ export function OwnerApplicationForm({
           note: form.note,
           tax_document_path: taxPath,
           license_document_path: licensePath,
+          trade_registry_document_path: tradePath,
+          alcohol_license_document_path: alcoholPath,
         });
         if (result.ok) {
           router.refresh();
@@ -169,6 +178,32 @@ export function OwnerApplicationForm({
                 type="file"
                 accept="image/*,application/pdf"
                 onChange={(e) => setLicenseDoc(e.target.files?.[0] ?? null)}
+                className="field mt-1 cursor-pointer text-sm file:mr-3 file:rounded-full file:border-0 file:bg-blush file:px-3 file:py-1 file:text-xs file:text-bordeaux"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-ink-soft">
+                Faaliyet Belgesi / Ticaret Sicil{" "}
+                <span className="font-normal text-mute">(isteğe bağlı)</span>
+              </label>
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => setTradeDoc(e.target.files?.[0] ?? null)}
+                className="field mt-1 cursor-pointer text-sm file:mr-3 file:rounded-full file:border-0 file:bg-blush file:px-3 file:py-1 file:text-xs file:text-bordeaux"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-ink-soft">
+                Alkollü İçecek Belgesi{" "}
+                <span className="font-normal text-mute">
+                  (alkollü paket sunuyorsanız)
+                </span>
+              </label>
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => setAlcoholDoc(e.target.files?.[0] ?? null)}
                 className="field mt-1 cursor-pointer text-sm file:mr-3 file:rounded-full file:border-0 file:bg-blush file:px-3 file:py-1 file:text-xs file:text-bordeaux"
               />
             </div>

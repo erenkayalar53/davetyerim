@@ -11,6 +11,7 @@ import {
 } from "@/app/actions/admin";
 import { approveOwner, rejectOwner } from "@/app/actions/owner";
 import { venueTypeLabel, formatPrice } from "@/lib/constants";
+import { OWNER_DOC_KINDS } from "@/lib/owner-docs";
 import type { Venue, VenuePhoto, Profile } from "@/lib/types";
 import {
   IconArrowUpRight,
@@ -72,21 +73,19 @@ export default async function AdminPage() {
   const applications = (applicationData as Profile[]) ?? [];
   const inquiries = (inquiryData as OwnerInquiry[]) ?? [];
 
-  // Belgeler için kısa ömürlü imzalı bağlantılar üret (özel bucket)
-  const docLinks: Record<string, { tax?: string; license?: string }> = {};
+  // Belgeler için kısa ömürlü imzalı bağlantılar üret (özel bucket).
+  // Belge türleri tek listeden besleniyor: yeni bir belge eklendiğinde
+  // hem bağlantı üretimi hem ekrandaki rozetler kendiliğinden güncellenir.
+  const docLinks: Record<string, Record<string, string>> = {};
   for (const app of applications) {
-    const links: { tax?: string; license?: string } = {};
-    if (app.tax_document_path) {
+    const links: Record<string, string> = {};
+    for (const kind of OWNER_DOC_KINDS) {
+      const path = app[kind.column];
+      if (!path) continue;
       const { data } = await supabase.storage
         .from("owner-documents")
-        .createSignedUrl(app.tax_document_path, 3600);
-      if (data?.signedUrl) links.tax = data.signedUrl;
-    }
-    if (app.license_document_path) {
-      const { data } = await supabase.storage
-        .from("owner-documents")
-        .createSignedUrl(app.license_document_path, 3600);
-      if (data?.signedUrl) links.license = data.signedUrl;
+        .createSignedUrl(path, 3600);
+      if (data?.signedUrl) links[kind.column] = data.signedUrl;
     }
     docLinks[app.id] = links;
   }
@@ -231,36 +230,34 @@ export default async function AdminPage() {
                     </p>
                   )}
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {docLinks[app.id]?.tax ? (
-                      <a
-                        href={docLinks[app.id].tax}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-full border border-sage/40 bg-sage/10 px-3 py-1 text-xs font-medium text-sage"
-                      >
-                        <IconDocument size={13} />
-                        Vergi Levhası
-                      </a>
-                    ) : (
-                      <span className="rounded-full border border-hairline px-3 py-1 text-xs text-mute">
-                        Vergi levhası yok
-                      </span>
-                    )}
-                    {docLinks[app.id]?.license ? (
-                      <a
-                        href={docLinks[app.id].license}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-full border border-sage/40 bg-sage/10 px-3 py-1 text-xs font-medium text-sage"
-                      >
-                        <IconDocument size={13} />
-                        İşyeri Ruhsatı
-                      </a>
-                    ) : (
-                      <span className="rounded-full border border-hairline px-3 py-1 text-xs text-mute">
-                        Ruhsat yok
-                      </span>
-                    )}
+                    {OWNER_DOC_KINDS.map((kind) => {
+                      const url = docLinks[app.id]?.[kind.column];
+                      if (url) {
+                        return (
+                          <a
+                            key={kind.column}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-full border border-sage/40 bg-sage/10 px-3 py-1 text-xs font-medium text-sage"
+                          >
+                            <IconDocument size={13} />
+                            {kind.label}
+                          </a>
+                        );
+                      }
+                      // İsteğe bağlı belgenin yokluğu eksiklik değil: yalnızca
+                      // zorunlu belgeler için "yok" uyarısı gösteriliyor.
+                      if (!kind.required) return null;
+                      return (
+                        <span
+                          key={kind.column}
+                          className="rounded-full border border-hairline px-3 py-1 text-xs text-mute"
+                        >
+                          {kind.label} yok
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="flex shrink-0 gap-2">

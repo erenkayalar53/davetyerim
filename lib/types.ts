@@ -131,6 +131,8 @@ export interface Profile {
   verified: boolean;
   tax_document_path: string | null;
   license_document_path: string | null;
+  trade_registry_document_path: string | null;
+  alcohol_license_document_path: string | null;
 }
 
 export interface VenueFilters {
