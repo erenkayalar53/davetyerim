@@ -4,6 +4,7 @@ import { SITE_NAME, SITE_URL, SITE_DESCRIPTION } from "@/lib/constants";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { getSessionProfile } from "@/lib/auth";
+import { GoogleAnalytics } from "@/components/google-analytics";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -38,6 +39,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getSessionProfile();
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
     <html
@@ -52,6 +54,7 @@ export default async function RootLayout({
         />
         <main className="flex-1">{children}</main>
         <Footer />
+        {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
       </body>
     </html>
   );
