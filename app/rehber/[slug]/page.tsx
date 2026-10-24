@@ -71,7 +71,12 @@ export default async function ArticlePage({ params }: PageProps) {
     datePublished: article.publishedAt,
     dateModified: article.updatedAt,
     mainEntityOfPage: url,
-    ...(article.cover ? { image: `${SITE_URL}${article.cover}` } : {}),
+    // Google, Article için görsel bekler. Yazıya özel kapak yoksa sitenin
+    // üretilen OG görseli kullanılır; alanın hiç bulunmaması, jenerik bir
+    // görsele düşmekten daha kötü değerlendiriliyor.
+    image: article.cover
+      ? `${SITE_URL}${article.cover}`
+      : `${SITE_URL}/opengraph-image`,
     author: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
     publisher: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
   };
